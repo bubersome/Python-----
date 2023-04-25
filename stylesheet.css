@@ -1,0 +1,255 @@
+.biao_ti {
+    display: block;
+    font-size: 0.75em;
+    font-weight: bold;
+    line-height: 1.2;
+    text-align: center;
+    text-indent: 0;
+    margin: 1em 0
+    }
+.calibre {
+    display: block;
+    font-size: 1em;
+    line-height: 1.2;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0 5pt
+    }
+.calibre1 {
+    font-weight: bold
+    }
+.calibre2 {
+    color: gray;
+    display: block;
+    height: 2px;
+    margin: 0.5em auto;
+    border: currentColor inset 1px
+    }
+.calibre3 {
+    text-decoration: none
+    }
+.calibre4 {
+    font-family: Courier, Menlo, Monaco, Consolas, monospace
+    }
+.calibre5 {
+    display: block;
+    list-style-type: disc;
+    margin-bottom: 1em;
+    margin-right: 0;
+    margin-top: 1em
+    }
+.calibre6 {
+    display: list-item
+    }
+.calibre7 {
+    display: block;
+    text-indent: 0;
+    margin: 1em 0
+    }
+.calibre8 {
+    height: auto;
+    width: 12%
+    }
+.calibre9 {
+    height: auto;
+    width: 80%
+    }
+.calibre10 {
+    height: auto;
+    width: 30%
+    }
+.calibre11 {
+    border-radius: 0.5em;
+    box-shadow: 5px 5px 5px #c7c7c7;
+    display: block;
+    width: 97%;
+    margin: 1em 0 1.5em;
+    padding: 0.5em 0 0 0.5em;
+    border: #146eb4 solid 1px
+    }
+.calibre12 {
+    height: auto;
+    width: 8%
+    }
+.calibre13 {
+    color: #0092DD;
+    display: block;
+    font-size: 1.41667em;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 1em 0;
+    padding: 0.3em
+    }
+.calibre14 {
+    height: auto;
+    width: 70%
+    }
+.calibre15 {
+    height: auto;
+    width: 60%
+    }
+.calibre16 {
+    font-style: italic
+    }
+.calibre17 {
+    height: auto;
+    width: 90%
+    }
+.calibre18 {
+    border-collapse: collapse;
+    border-spacing: 0;
+    display: table;
+    text-indent: 0;
+    margin: 15px auto 30px
+    }
+.calibre19 {
+    display: table-header-group;
+    vertical-align: middle
+    }
+.calibre20 {
+    display: table-row;
+    vertical-align: inherit
+    }
+.calibre21 {
+    display: table-cell;
+    font-size: 0.75em;
+    font-weight: bold;
+    page-break-inside: avoid;
+    text-align: center;
+    vertical-align: auto;
+    padding: 0.3em;
+    border: #000 solid 1px
+    }
+.calibre22 {
+    display: table-row-group;
+    vertical-align: middle
+    }
+.calibre23 {
+    display: table-cell;
+    font-size: 0.75em;
+    page-break-inside: avoid;
+    text-align: left;
+    vertical-align: auto;
+    padding: 0.3em;
+    border: #000 solid 1px
+    }
+.calibre24 {
+    background-color: #f1f6fc;
+    display: table-row;
+    vertical-align: inherit
+    }
+.calibre25 {
+    height: auto;
+    width: 65%
+    }
+.calibre26 {
+    height: auto;
+    width: 95%
+    }
+.calibre27 {
+    height: auto;
+    width: 25%
+    }
+.calibre28 {
+    height: auto;
+    width: 50%
+    }
+.calibre29 {
+    height: auto;
+    width: 55%
+    }
+.calibre30 {
+    height: auto;
+    width: 75%
+    }
+.calibre31 {
+    height: auto;
+    width: 85%
+    }
+.calibre32 {
+    font-size: 0.75em;
+    line-height: 1.2;
+    vertical-align: super
+    }
+.calibre33 {
+    height: auto;
+    width: auto
+    }
+.dai_ma_wu_xing_hao {
+    display: block;
+    font-family: Courier, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.75em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 1.3em 0;
+    padding: 0.3em;
+    border: #000 solid 1px
+    }
+.not-in-toc {
+    background-color: #f1f6fc;
+    color: #0092DD;
+    display: block;
+    font-size: 1.41667em;
+    font-weight: bold;
+    line-height: 1.2;
+    page-break-before: always;
+    text-align: center;
+    width: 100%;
+    margin: 0.67em 0;
+    padding: 0.75em 0;
+    border-top: #c7c7c7 dashed 1px;
+    border-right: #FFF solid 1px;
+    border-bottom: #c7c7c7 dashed 1px;
+    border-left: #FFF solid 1px
+    }
+.sgc-toc-level {
+    display: block;
+    margin: 1em 0
+    }
+.sgc-toc-level1 {
+    display: block
+    }
+.sgc-toc-title {
+    display: block;
+    font-size: 1.41667em;
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 2em;
+    text-align: center
+    }
+.sigil_not_in_toc {
+    color: #0092DD;
+    display: block;
+    font-size: 1.41667em;
+    font-weight: bold;
+    line-height: 1.2;
+    page-break-before: always;
+    margin: 0.83em 0;
+    padding: 0.3em
+    }
+.sigil_not_in_toc1 {
+    display: block;
+    font-size: 1.125em;
+    font-weight: bold;
+    line-height: 1.2;
+    margin: 1.33em 0
+    }
+.tu {
+    display: block;
+    text-align: center;
+    text-indent: 0;
+    margin: 1em 0
+    }
+.tu_ti {
+    display: block;
+    font-size: 0.75em;
+    line-height: 1.2;
+    text-align: center;
+    text-indent: 0;
+    margin: 1em 0
+    }
+.zw {
+    display: block;
+    text-indent: 2em;
+    margin: 1em 0
+    }

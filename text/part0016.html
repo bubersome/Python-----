@@ -1,0 +1,649 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>未知</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="../stylesheet.css"/>
+<link rel="stylesheet" type="text/css" href="../page_styles.css"/>
+</head>
+  <body class="calibre">
+  <h1 class="not-in-toc" id="nav_point_107">第8章　Scrapy</h1>
+
+  <p class="zw"><strong class="calibre1">Scrapy</strong>是一个流行的网络爬虫框架，它使用了一些高级功能以简化网站抓取。本章中，我们将学习使用Scrapy抓取示例网站，目标任务与第2章相同。然后，我们还会介绍<strong class="calibre1">Portia</strong>，这是一个基于Scrapy的应用，允许用户通过点击界面抓取网站。</p>
+
+  <p class="zw">在本章中，我们将会介绍如下主题：</p>
+
+  <ul class="calibre5">
+    <li class="calibre6">Scrapy入门；</li>
+
+    <li class="calibre6">创建爬虫；</li>
+
+    <li class="calibre6">对比不同的爬虫类型；</li>
+
+    <li class="calibre6">使用Scrapy进行爬取；</li>
+
+    <li class="calibre6">使用Portia编写可视化爬虫；</li>
+
+    <li class="calibre6">使用Scrapely实现自动化抓取。</li>
+  </ul>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_108">8.1　安装Scrapy</h2>
+
+  <p class="zw">我们可以使用<code class="calibre4">pip</code>命令安装Scrapy，如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">pip install scrapy</strong></code></pre>
+
+  <p class="zw">由于Scrapy依赖一些外部库，因此如果在安装过程中遇到困难的话，可以从其官方网站上获取到更多信息，网址为<code class="calibre4">http://doc.scrapy.org/en/latest/intro/install.html</code>。</p>
+
+  <p class="zw">如果Scrapy安装成功，就可以在终端里执行<code class="calibre4">scrapy</code>命令了。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy</strong>
+<strong class="calibre1">    Scrapy 1.3.3 - no active project</strong>
+
+<strong class="calibre1">Usage:</strong>
+<strong class="calibre1">  scrapy &lt;command&gt; [options] [args]</strong>
+
+<strong class="calibre1">Available commands:</strong>
+<strong class="calibre1">        bench    Run quick benchmark test</strong>
+<strong class="calibre1">        commands</strong>
+<strong class="calibre1">        fetch    Fetch a URL using the Scrapy downloader</strong>
+<strong class="calibre1">...</strong></code></pre>
+
+  <p class="zw">本章中我们将会使用如下几个命令。</p>
+
+  <ul class="calibre5">
+    <li class="calibre6"><code class="calibre4">startproject</code>：创建一个新项目。</li>
+
+    <li class="calibre6"><code class="calibre4">genspider</code>：根据模板生成一个新爬虫。</li>
+
+    <li class="calibre6"><code class="calibre4">crawl</code>：执行爬虫。</li>
+
+    <li class="calibre6"><code class="calibre4">shell</code>：启动交互式抓取控制台。</li>
+  </ul>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00043.jpeg" width="8%"/>　</p>
+
+    <p class="zw">要了解上述命令或其他命令的详细信息，可以参考<code class="calibre4">http://doc.scrapy. org/en/latest/topics/commands.html</code>。</p>
+  </blockquote>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_109">8.2　启动项目</h2>
+
+  <p class="zw">安装好Scrapy以后，我们可以运行<code class="calibre4">startproject</code>命令生成第一个Scrapy项目的默认结构。</p>
+
+  <p class="zw">具体的操作步骤为：打开终端进入想要存储Scrapy项目的目录，然后运行<code class="calibre4">scrapy startproject &lt; project name&gt;</code>。这里我们使用<code class="calibre4">example</code>作为项目名。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy startproject example</strong>
+<strong class="calibre1">$ cd example</strong></code></pre>
+
+  <p class="zw">下面是<code class="calibre4">scrapy</code>命令生成的文件结构。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">scrapy.cfg
+example/
+    __init__.py
+    items.py
+    middlewares.py
+    pipelines.py
+    settings.py
+    spiders/
+        __init__.py</code></pre>
+
+  <p class="zw">其中，在本章（以及一般的Scrapy使用）中比较重要的几个文件如下所示。</p>
+
+  <ul class="calibre5">
+    <li class="calibre6"><code class="calibre4">items.py</code>：该文件定义了待抓取域的模型。</li>
+
+    <li class="calibre6"><code class="calibre4">settings.py</code>：该文件定义了一些设置，如用户代理、爬取延时等。</li>
+
+    <li class="calibre6"><code class="calibre4">spiders/</code>：该目录存储实际的爬虫代码。</li>
+  </ul>
+
+  <p class="zw">另外，Scrapy使用<code class="calibre4">scrapy.cfg</code>设置项目配置，<code class="calibre4">pipelines.py</code>处理要抓取的域，<code class="calibre4">middlewares.py</code>控制请求和响应中间件，不过在本例中无须修改这几个文件。</p>
+
+  <h3 class="calibre13" id="nav_point_110">8.2.1　定义模型</h3>
+
+  <p class="zw">默认情况下，<code class="calibre4">example/items.py</code>文件包含如下代码。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"># -*- coding: utf-8 -*-
+# Define here the models for your scraped items
+#
+# See documentation in:
+# http://doc.scrapy.org/en/latest/topics/items.html
+
+import scrapy
+
+class ExampleItem(scrapy.Item):
+    # define the fields for your item here like:
+    # name = scrapy.Field()
+    pass</code></pre>
+
+  <p class="zw"><code class="calibre4">ExampleItem</code>类是一个模板，需要将其中的内容替换为我们希望从示例国家（或地区）页面中抽取到的信息。对于目前来说，我们只会抓取国家（或地区）名称和人口数量，而不是抓取国家（或地区）的所有信息。下面是修改后支持该功能的模型代码。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">class CountryOrDistrictItem(scrapy.Item):
+    name = scrapy.Field()
+    population = scrapy.Field()</code></pre>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00046.jpeg" width="8%"/>　</p>
+
+    <p class="zw">定义item的详细文档可以参考<code class="calibre4">http://doc.scrapy.org/en/latest/topics/items.html</code>。</p>
+  </blockquote>
+
+  <h3 class="calibre13" id="nav_point_111">8.2.2　创建爬虫</h3>
+
+  <p class="zw">现在，我们要开始编写真正的爬虫代码了，在Scrapy里又被称为<strong class="calibre1">spider</strong>。通过<code class="calibre4">genspider</code>命令，传入爬虫名、域名以及可选的模板参数，就可以生成初始模板。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy genspider country_or_district example.python-scraping.com --template= crawl</strong></code></pre>
+
+  <p class="zw">我们使用了内置的<code class="calibre4">crawl</code>模板，以利用Scrapy库的<code class="calibre4">CrawlSpider</code>。相对于简单的抓取爬虫来说，Scrapy的<code class="calibre4">CrawlSpider</code>拥有一些网络爬取时可用的特殊属性和方法。</p>
+
+  <p class="zw">运行<code class="calibre4">genspider</code>命令之后，下面的代码将会在<code class="calibre4">example/spiders/country_or_district.py</code>中自动生成。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"># -*- coding: utf-8 -*-
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from scrapy.spiders import CrawlSpider, Rule
+
+class CountryOrDistrictSpider(CrawlSpider):
+    name = 'country_or_district'
+    allowed_domains = ['example.python-scraping.com']
+    start_urls = ['http://example.python-scraping.com']
+
+    rules = (
+        Rule(LinkExtractor(allow=r'Items/'), callback='parse_item',
+follow=True),
+    )
+
+    def parse_item(self, response):
+        i = {}
+        #i['domain_id'] =
+response.xpath('//input[@id="sid"]/@value').extract()
+        #i['name'] = response.xpath('//div[@id="name"]').extract()
+        #i['description'] =
+response.xpath('//div[@id="description"]').extract()
+        return i</code></pre>
+
+  <p class="zw">最开始几行导入了后面会用到的Scrapy库以及编码定义。然后创建了一个爬虫类，该类包括如下类属性。</p>
+
+  <ul class="calibre5">
+    <li class="calibre6"><code class="calibre4">name</code>：识别爬虫的字符串。</li>
+
+    <li class="calibre6"><code class="calibre4">allowed_domains</code>：可以爬取的域名列表。如果没有设置该属性，则表示可以爬取任何域名。</li>
+
+    <li class="calibre6"><code class="calibre4">start_urls</code>：爬虫起始URL列表。</li>
+
+    <li class="calibre6"><code class="calibre4">rules</code>：该属性为一个通过正则表达式定义的<code class="calibre4">Rule</code>对象元组，用于告知爬虫需要跟踪哪些链接以及哪些链接包含待抓取的有用内容。</li>
+  </ul>
+
+  <p class="zw">你会发现定义的<code class="calibre4">Rule</code>中包含一个<code class="calibre4">callback</code>属性，该回调被设置为下面定义的<code class="calibre4">parse_item</code>。该方法是<code class="calibre4">CrawlSpider</code>对象的主要数据抽取方法，并且该方法生成的Scrapy代码中包含从页面中抽取内容的示例。</p>
+
+  <p class="zw">由于Scrapy是一个高级框架，因此即使只有这几行代码，也还有很多需要了解的知识。官方文档中包含了创建爬虫相关的更多细节，其网址为<code class="calibre4">http://doc.scrapy.org/en/latest/topics/spiders.html</code>。</p>
+
+  <h4 class="sigil_not_in_toc1">1．优化设置</h4>
+
+  <p class="zw">在运行前面生成的爬虫之前，需要更新Scrapy的设置，避免爬虫被封禁。默认情况下，Scrapy对同一域名允许最多16个并发下载，并且两次下载之间没有延时，这样就会比真实用户浏览时的速度快很多。该行为很容易被服务器检测到并阻止。</p>
+
+  <p class="zw">在第1章中提到，当下载速度持续高于每秒一个请求时，我们抓取的示例网站会暂时封禁爬虫，也就是说使用默认配置会造成我们的爬虫被封禁。除非你在本地运行示例网站，否则我建议在<code class="calibre4">example/settings.py</code>文件中添加如下几行代码，使爬虫同时只能对每个域名发起一个请求，并且每两次请求之间存在合理的5秒延时。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">CONCURRENT_REQUESTS_PER_DOMAIN = 1
+DOWNLOAD_DELAY = 5</code></pre>
+
+  <p class="zw">你也可以在文档中搜索到这些设置，使用上面的值进行修改并取消注释。请注意，Scrapy在两次请求之间的延时并不是精确的，这是因为精确的延时同样会造成爬虫容易被检测到，然后被封禁。而Scrapy实际使用的方法是在两次请求之间的延时上添加随机的偏移量。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00048.jpeg" width="8%"/>　</p>
+
+    <p class="zw">要想了解关于上述设置和其他可用设置的更多细节，可以参考<code class="calibre4">http://doc.scrapy.org/en/latest/topics/settings.html</code>。</p>
+  </blockquote>
+
+  <h4 class="sigil_not_in_toc1">2．测试爬虫</h4>
+
+  <p class="zw">想要从命令行运行爬虫，需要使用<code class="calibre4">crawl</code>命令，并且带上爬虫的名称。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">    $ scrapy crawl country_or_district -s LOG_LEVEL=ERROR</strong>
+<strong class="calibre1">$</strong></code></pre>
+
+  <p class="zw">脚本运行后，完全没有输出。你会注意到命令中有一个<code class="calibre4">-s LOG_LEVEL=ERROR</code>标记，这是一个Scrapy设置，等同于在<code class="calibre4">settings.py</code>文件中定义<code class="calibre4">LOG_LEVEL = 'ERROR'</code>。默认情况下，Scrapy会在终端上输出所有日志信息，而这里是将日志级别提升至只显示错误信息。</p>
+
+  <p class="zw">为了真正抓取页面上的一些内容，我们需要在爬虫文件中添加几行代码。为了确保我们可以启动构建并且抽取item，我们必须先从使用<code class="calibre4">CountryItem</code>开始，并更新爬取规则。下面是更新后的爬虫版本。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">from example.items import CountryOrDistrictItem
+    ...
+
+    rules = (
+        Rule(LinkExtractor(allow=r'/index/'), follow=True),
+        Rule(LinkExtractor(allow=r'/view/'), callback='parse_item')
+    )
+
+    def parse_item():
+        i = CountryOrDistrictItem ()
+        ...</code></pre>
+
+  <p class="zw">为了抽取结构化数据，需要使用我们创建的<code class="calibre4">CountryOrDistrictItem</code>类。在新添加的代码中，我们引入该类，并在<code class="calibre4">parse_item</code>方法中实例化了一个对象<code class="calibre4">i</code>（或item）。</p>
+
+  <p class="zw">此外，我们还需要添加规则，以便我们的爬虫可以找到数据并对其进行抽取。默认规则为搜索url模式<code class="calibre4">r'/Items'</code>，这与我们的示例站点并不匹配。我们可以根据对站点的已知信息，创建两条新规则来替代默认规则。第一条规则爬取索引页并跟踪其中的链接，而第二条规则爬取国家（或地区）页面并将下载响应传给<code class="calibre4">callback</code>函数用于抓取。</p>
+
+  <p class="zw">下面让我们把日志级别设为<code class="calibre4">DEBUG</code>以显示更多的爬取信息，来看一下这个改进后的爬虫是如何运行的。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy crawl country_or_district -s LOG_LEVEL=DEBUG</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">2017-03-24 11:52:42 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Belize-23&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/index/2)</strong>
+<strong class="calibre1">2017-03-24 11:52:49 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Belgium-22&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/index/2)</strong>
+<strong class="calibre1">2017-03-24 11:52:53 [scrapy.extensions.logstats] INFO: Crawled 40 pages (at</strong>
+<strong class="calibre1">10 pages/min), scraped 0 items (at 0 items/min)</strong>
+<strong class="calibre1">2017-03-24 11:52:56 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/user/login?_next=%2Findex%2F0&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/index/0)</strong>
+<strong class="calibre1">2017-03-24 11:53:03 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/user/register?_next=%2Findex%2F0&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/index/0)</strong>
+<strong class="calibre1">...</strong></code></pre>
+
+  <p class="zw">输出的日志信息显示，索引页和国家（或地区）页都可以正确爬取，并且已经过滤了重复链接。我们还可以看到，在首次启动爬取时，我们已安装的中间件以及其他重要信息的输出。</p>
+
+  <p class="zw">不过，我们还会发现爬虫浪费了很多资源来爬取每个网页上的登录和注册表单链接，因为它们也匹配<code class="calibre4">rules</code>里的正则表达式。前面命令中的登录URL以<code class="calibre4">_next=%2Findex%2F1</code>结尾，也就是<code class="calibre4">_next=/index/1</code>经过URL编码后的结果，定义了登录后重定向的地址。要想避免爬取这些URL，我们可以使用规则的<code class="calibre4">deny</code>参数，该参数同样需要一个正则表达式，用于匹配每个不想爬取的URL。</p>
+
+  <p class="zw">下面对之前的代码进行了修改，通过避免URL包含<code class="calibre4">/user/</code>来防止爬取用户登录和注册表单。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">rules = (
+    Rule(LinkExtractor(allow=r'/index/', deny=r'/user/'), follow=True),
+    Rule(LinkExtractor(allow=r'/view/', deny=r'/user/'),
+callback='parse_item')
+)</code></pre>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00084.jpeg" width="8%"/>　</p>
+
+    <p class="zw">想要进一步了解如何使用<code class="calibre4">LinkExtractor</code>类，可以参考其文档，网址为<code class="calibre4">http://doc.scrapy.org/en/latest/topics/linkextractors.html</code>。</p>
+  </blockquote>
+
+  <p class="zw">要想停止当前爬取，并使用新的代码重新开始，你可以使用<em class="calibre16">Ctrl + C</em>或<em class="calibre16">cmd + C</em>发送一个退出信号。之后，你将会看到类似如下所示的信息。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">2017-03-24 11:56:03 [scrapy.crawler] INFO: Received SIG_SETMASK, shutting
+down gracefully. Send again to force</code></pre>
+
+  <p class="zw">它将完成队列中的请求，然后停止。你将会在结尾处看到一些额外的统计和调试信息，我们将在本节后面的部分对其进行介绍。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00053.jpeg" width="8%"/>　</p>
+
+    <p class="zw">除了为爬虫添加拒绝规则外，你还可以对<code class="calibre4">Rule</code>对象使用<code class="calibre4">process_links</code>参数。它将允许你创建一个可以迭代所有可发现链接并进行任意修改的函数（比如移除或添加查询字符串的部分）。关于爬取规则的更多信息，可以查阅文档，地址为<code class="calibre4">https://doc.scrapy.org/en/latest/topics/spiders.html#crawling-rules</code>。</p>
+  </blockquote>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_112">8.3　不同的爬虫类型</h2>
+
+  <p class="zw">在这个Scrapy的例子中，我们使用了Scrapy的<code class="calibre4">CrawlSpider</code>，它在爬取一个或一系列网站时非常有用。Scrapy还有其他几种爬虫，根据网站和想要抽取的内容不同，你可能也会使用到它们。这些爬虫属于如下几个类别。</p>
+
+  <ul class="calibre5">
+    <li class="calibre6"><code class="calibre4">Spider</code>：普通的抓取爬虫。通常只用于抓取一个类型的页面。</li>
+
+    <li class="calibre6"><code class="calibre4">CrawlSpider</code>：爬取爬虫。通常用于遍历域名，并从它通过爬取链接发现的页面中抓取一个（或几个）类型的页面。</li>
+
+    <li class="calibre6"><code class="calibre4">XMLFeedSpider</code>：遍历XML流并从每个节点中抽取内容的爬虫。</li>
+
+    <li class="calibre6"><code class="calibre4">CSVFeedSpider</code>：与XML爬虫类似，不过此处是解析输出中的CSV行。</li>
+
+    <li class="calibre6"><code class="calibre4">SitemapSpider</code>：该爬虫通过先解析站点地图，使用不同的规则爬取网站。</li>
+  </ul>
+
+  <p class="zw">这些爬虫都包含在Scrapy的默认安装当中，因此无论何时你想要构建一个新的网络爬虫时，都可以使用它们。在本章中，我们将完成构建第一个爬取爬虫，作为如何使用Scrapy工具的示例。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_113">8.4　使用shell命令抓取</h2>
+
+  <p class="zw">现在Scrapy已经可以爬取国家（或地区）页面了，下面还需要定义要抓取哪些数据。为了帮助测试如何从网页中抽取数据，Scrapy提供了一个很方便的命令——<code class="calibre4">shell</code>，可以通过Python或IPython解释器向我们展示Scrapy的API。</p>
+
+  <p class="zw">我们可以使用想要作为起始的URL调用命令，如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy shell http://example.python-scraping.com/view/United-Kingdom-239</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">[s] Available Scrapy objects:</strong>
+<strong class="calibre1">[s] scrapy     scrapy module (contains scrapy.Request, scrapy.Selector,</strong>
+<strong class="calibre1">etc)</strong>
+<strong class="calibre1">[s] crawler    &lt;scrapy.crawler.Crawler object at 0x7fd18a669cc0&gt;</strong>
+<strong class="calibre1">[s] item       {}</strong>
+<strong class="calibre1">[s] request    &lt;GET http://example.python-scraping.com/view/United-Kingdom-239&gt;</strong>
+<strong class="calibre1">[s] response   &lt;200 http://example.python-scraping.com/view/United-Kingdom-239&gt;</strong>
+<strong class="calibre1">[s] settings   &lt;scrapy.settings.Settings object at 0x7fd189655940&gt;</strong>
+<strong class="calibre1">[s] spider     &lt;CountryOrDistrictSpider 'country_or_district' at 0x7fd1893dd320&gt;</strong>
+<strong class="calibre1">[s] Useful shortcuts:</strong>
+<strong class="calibre1">[s] fetch(url[, redirect=True]) Fetch URL and update local objects (by</strong>
+<strong class="calibre1">default, redirects are followed)</strong>
+<strong class="calibre1">[s] fetch(req)                  Fetch a scrapy.Request and update local</strong>
+<strong class="calibre1">objects</strong>
+<strong class="calibre1">[s] shelp()                     Shell help (print this help)</strong>
+<strong class="calibre1">[s] view(response)              View response in a browser</strong>
+<strong class="calibre1">In [1]:</strong></code></pre>
+
+  <p class="zw">现在我们可以查询返回对象，检查哪些数据可以使用。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: response.url</strong>
+<strong class="calibre1">Out[1]:'http://example.python-scraping.com/view/United-Kingdom-239'</strong>
+
+<strong class="calibre1">In [2]: response.status</strong>
+<strong class="calibre1">Out[2]: 200</strong></code></pre>
+
+  <p class="zw">Scrapy使用<code class="calibre4">lxml</code>抓取数据，所以我们仍然可以使用第2章中用过的CSS选择器。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [3]: response.css('tr#places_country_or_district__row td.w2p_fw::text')</strong>
+<strong class="calibre1">[&lt;Selector xpath=u"descendant-or-self::</strong>
+<strong class="calibre1">    tr[@id = 'places_country_or_district__row']/descendant-or-self::</strong>
+<strong class="calibre1">    */td[@class and contains(</strong>
+<strong class="calibre1">    concat(' ', normalize-space(@class), ' '),</strong>
+<strong class="calibre1">    ' w2p_fw ')]/text()" data=u'United Kingdom'&gt;]</strong></code></pre>
+
+  <p class="zw">该方法返回一个<code class="calibre4">lxml</code>选择器的列表。你可能还能认出Scrapy和<code class="calibre4">lxml</code>用于选择item的一些XPath语法。正如我们在第2章所学到的，<code class="calibre4">lxml</code>在抽取内容之前，会把所有的CSS选择器转换成XPath。</p>
+
+  <p class="zw">为了从该国家（或地区）的数据行中实际获取文本，我们必须调用<code class="calibre4">extract()</code>方法。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [4]: name_css = 'tr#places_country_or_district__row td.w2p_fw::text'</strong>
+
+<strong class="calibre1">In [5]: response.css(name_css).extract()</strong>
+<strong class="calibre1">Out[5]: [u'United Kingdom']</strong>
+
+<strong class="calibre1">In [6]: pop_xpath =</strong>
+<strong class="calibre1">'//tr[@id="places_population__row"]/td[@class="w2p_fw"]/text()'</strong>
+
+<strong class="calibre1">In [7]: response.xpath(pop_xpath).extract()</strong>
+<strong class="calibre1">Out[7]: [u'62,348,447']</strong></code></pre>
+
+  <p class="zw">如上面的输出所示，Scrapy的<code class="calibre4">response</code>对象既可以使用<code class="calibre4">css</code>也可以使用<code class="calibre4">xpath</code>进行解析，使其变得非常灵活，无论明显的内容还是难以获取的内容都能够得到。</p>
+
+  <p class="zw">然后，可以在先前生成的<code class="calibre4">example/spiders/country_or_district.py</code>文件的<code class="calibre4">parse_item()</code>方法中使用这些选择器。请注意，我们使用了字典的语法设置<code class="calibre4">scrapy.Item</code>对象的属性。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">def parse_item(self, response):
+    item = CountryItem()
+    name_css = 'tr#places_country_or_district__row td.w2p_fw::text'
+    item['name'] = response.css(name_css).extract()
+    pop_xpath =
+'//tr[@id="places_population__row"]/td[@class="w2p_fw"]/text()'
+    item['population'] = response.xpath(pop_xpath).extract()
+    return item</code></pre>
+
+  <h3 class="calibre13" id="nav_point_114">8.4.1　检查结果</h3>
+
+  <p class="zw">下面是该爬虫的完整代码。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">class CountryOrDistrictSpider(CrawlSpider):
+    name = 'country_or_district'
+    start_urls = ['http://example.python-scraping.com/']
+    allowed_domains = ['example.python-scraping.com']
+    rules = (
+        Rule(LinkExtractor(allow=r'/index/', deny=r'/user/'), follow=True),
+        Rule(LinkExtractor(allow=r'/view/', deny=r'/user/'),
+callback='parse_item')
+    )
+
+    def parse_item(self, response):
+        item = CountryOrDistrictItem()
+        name_css = 'tr#places_country_or_district__row td.w2p_fw::text'
+        item['name'] = response.css(name_css).extract()
+        pop_xpath =
+'//tr[@id="places_population__row"]/td[@class="w2p_fw"]/text()'
+        item['population'] = response.xpath(pop_xpath).extract()
+        return item</code></pre>
+
+  <p class="zw">要想保存结果，我们可以定义管道，或在我们的<code class="calibre4">settings.py</code>文件中配置输出设置。不过，Scrapy还提供了一个更方便的<code class="calibre4">--output</code>选项，用于自动保存已抓取的条目，其可选格式包括CSV、JSON和XML。</p>
+
+  <p class="zw">下面是该爬虫的最终版运行时的结果，它将会输出到一个CSV文件中，此外该爬虫的日志级别被设定为<code class="calibre4">INFO</code>以过滤不重要的信息。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy crawl country_or_district --output=../../../data/scrapy_countries_ or_districts.csv -s</strong>
+<strong class="calibre1">LOG_LEVEL=INFO</strong>
+<strong class="calibre1">2017-03-24 14:20:25 [scrapy.extensions.logstats] INFO: Crawled 277 pages</strong>
+<strong class="calibre1">(at 10 pages/min), scraped 249 items (at 9 items/min)</strong>
+<strong class="calibre1">2017-03-24 14:20:42 [scrapy.core.engine] INFO: Closing spider (finished)</strong>
+<strong class="calibre1">2017-03-24 14:20:42 [scrapy.statscollectors] INFO: Dumping Scrapy stats:</strong>
+<strong class="calibre1">{'downloader/request_bytes': 158580,</strong>
+<strong class="calibre1"> 'downloader/request_count': 280,</strong>
+<strong class="calibre1"> 'downloader/request_method_count/GET': 280,</strong>
+<strong class="calibre1"> 'downloader/response_bytes': 944210,</strong>
+<strong class="calibre1"> 'downloader/response_count': 280,</strong>
+<strong class="calibre1"> 'downloader/response_status_count/200': 280,</strong>
+<strong class="calibre1"> 'dupefilter/filtered': 61,</strong>
+<strong class="calibre1"> 'finish_reason': 'finished',</strong>
+<strong class="calibre1"> 'finish_time': datetime.datetime(2017, 3, 24, 13, 20, 42, 792220),</strong>
+<strong class="calibre1"> 'item_scraped_count': 252,</strong>
+<strong class="calibre1"> 'log_count/INFO': 35,</strong>
+<strong class="calibre1"> 'request_depth_max': 26,</strong>
+<strong class="calibre1"> 'response_received_count': 280,</strong>
+<strong class="calibre1"> 'scheduler/dequeued': 279,</strong>
+<strong class="calibre1"> 'scheduler/dequeued/memory': 279,</strong>
+<strong class="calibre1"> 'scheduler/enqueued': 279,</strong>
+<strong class="calibre1"> 'scheduler/enqueued/memory': 279,</strong>
+<strong class="calibre1"> 'start_time': datetime.datetime(2017, 3, 24, 12, 52, 25, 733163)}</strong>
+<strong class="calibre1">2017-03-24 14:20:42 [scrapy.core.engine] INFO: Spider closed (finished)</strong></code></pre>
+
+  <p class="zw">在爬取过程的最后阶段，Scrapy会输出一些统计信息，给出爬虫运行的一些指标。从统计结果中，我们可以了解到爬虫总共爬取了280个网页，并抓取到其中的252个条目，这与数据库中的国家（或地区）数量一致，因此我们知道爬虫已经找到了所有的国家（或地区）数据。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00057.jpeg" width="8%"/>　</p>
+
+    <p class="zw">你需要从Scrapy创建时生成的目录中运行Scrapy的spider和crawl命令（对于我们的项目来说是使用<code class="calibre4">startproject</code>命令创建的<code class="calibre4">example/</code>目录）。爬虫使用<code class="calibre4">scrapy.cfg</code>以及<code class="calibre4">settings.py</code>文件来确定如何抓取以及抓取什么地方，并设置用于爬取或抓取的爬虫路径。</p>
+  </blockquote>
+
+  <p class="zw">要想验证抓取的这些国家（或地区）信息正确与否，我们可以检查<code class="calibre4">countries_or_districts.csv</code>文件中的内容。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">name,population
+Afghanistan,"29,121,286"
+Antigua and Barbuda,"86,754"
+Antarctica,0
+Anguilla,"13,254"
+Angola,"13,068,161"
+Andorra,"84,000"
+American Samoa,"57,881"
+Algeria,"34,586,184"
+Albania,"2,986,952"
+Aland Islands,"26,711"
+...</code></pre>
+
+  <p class="zw">和预期一样，CSV文件中包含了每个国家（或地区）的名称和人口数量。抓取这些数据所要编写的代码比第2章中的原始爬虫要少很多，这是因为Scrapy提供了一些高级功能以及很好用的内置功能，比如内置的CSV写入功能。</p>
+
+  <p class="zw">在8.5节中，我们将使用Portia重新实现该爬虫，而且要编写的代码会更少。</p>
+
+  <h3 class="calibre13" id="nav_point_115">8.4.2　中断与恢复爬虫</h3>
+
+  <p class="zw">在抓取网站时，暂停爬虫并于稍后恢复而不是重新开始，有时会很有用。比如，软件更新后重启计算机，或是要爬取的网站出现错误需要稍后继续爬取时，都可能会中断爬虫。</p>
+
+  <p class="zw">非常方便的是，Scrapy内置了对暂停与恢复爬取的支持，这样我们就不需要再修改示例爬虫了。要开启该功能，我们只需定义用于保存爬虫当前状态目录的<code class="calibre4">JOBDIR</code>设置即可。需要注意的是，多个爬虫的状态需要保存在不同的目录当中。</p>
+
+  <p class="zw">下面是在我们的爬虫中使用该功能的示例。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy crawl country_or_district -s LOG_LEVEL=DEBUG -s</strong>
+<strong class="calibre1">JOBDIR=../../../data/crawls/country_or_district</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">2017-03-24 13:41:54 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Anguilla-8&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/)</strong>
+<strong class="calibre1">2017-03-24 13:41:54 [scrapy.core.scraper] DEBUG: Scraped from &lt;200</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Anguilla-8&gt;</strong>
+<strong class="calibre1">{'name': ['Anguilla'], 'population': ['13,254']}</strong>
+<strong class="calibre1">2017-03-24 13:41:59 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Angola-7&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/)</strong>
+<strong class="calibre1">2017-03-24 13:41:59 [scrapy.core.scraper] DEBUG: Scraped from &lt;200</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Angola-7&gt;</strong>
+<strong class="calibre1">{'name': ['Angola'], 'population': ['13,068,161']}</strong>
+<strong class="calibre1">2017-03-24 13:42:04 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Andorra-6&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/)</strong>
+<strong class="calibre1">2017-03-24 13:42:04 [scrapy.core.scraper] DEBUG: Scraped from &lt;200</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Andorra-6&gt;</strong>
+<strong class="calibre1">{'name': ['Andorra'], 'population': ['84,000']}</strong>
+<strong class="calibre1">^C2017-03-24 13:42:10 [scrapy.crawler] INFO: Received SIG_SETMASK, shutting</strong>
+<strong class="calibre1">down gracefully. Send again to force</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">[country] INFO: Spider closed (shutdown)</strong></code></pre>
+
+  <p class="zw">在上面的执行过程中，我们看到行中出现了一个<code class="calibre4">^C</code>，表示<code class="calibre4">Received SIG_SETMASK</code>，这和本章前面用于停止抓取的<em class="calibre16">Ctrl + C</em>或<em class="calibre16">cmd + C</em>是相同的。想要Scrapy保存爬虫状态，就必须等待它正常结束，而不能经受不住诱惑再次按下终止键强行立即关闭！现在，爬虫状态保存在<code class="calibre4">crawls/country_or_district</code>的<code class="calibre4">data</code>目录中。如果我们查看该目录的话，可以在其中看到保存的文件（请注意，对于Windows用户来说，下面的命令及目录语法需要改变）。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ ls ../../../data/crawls/country_or_district/</strong>
+<strong class="calibre1">requests.queue requests.seen spider.state</strong></code></pre>
+
+  <p class="zw">通过运行相同的命令，可以恢复爬取。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ scrapy crawl country_or_district -s LOG_LEVEL=DEBUG -s</strong>
+<strong class="calibre1">JOBDIR=../../../data/crawls/country_or_district</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">2017-03-24 13:49:49 [scrapy.core.engine] INFO: Spider opened</strong>
+<strong class="calibre1">2017-03-24 13:49:49 [scrapy.core.scheduler] INFO: Resuming crawl (13</strong>
+<strong class="calibre1">requests scheduled)</strong>
+<strong class="calibre1">2017-03-24 13:49:49 [scrapy.extensions.logstats] INFO: Crawled 0 pages (at</strong>
+<strong class="calibre1">0 pages/min), scraped 0 items (at 0 items/min)</strong>
+<strong class="calibre1">2017-03-24 13:49:49 [scrapy.extensions.telnet] DEBUG: Telnet console</strong>
+<strong class="calibre1">listening on 127.0.0.1:6023</strong>
+<strong class="calibre1">2017-03-24 13:49:49 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/robots.txt&gt; (referer: None)</strong>
+<strong class="calibre1">2017-03-24 13:49:54 [scrapy.core.engine] DEBUG: Crawled (200) &lt;GET</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Cameroon-40&gt; (referer:</strong>
+<strong class="calibre1">http://example.python-scraping.com/index/3)</strong>
+<strong class="calibre1">2017-03-24 13:49:54 [scrapy.core.scraper] DEBUG: Scraped from &lt;200</strong>
+<strong class="calibre1">http://example.python-scraping.com/view/Cameroon-40&gt;</strong>
+<strong class="calibre1">{'name': ['Cameroon'], 'population': ['19,294,149']}</strong>
+<strong class="calibre1">...</strong></code></pre>
+
+  <p class="zw">此时，爬虫从刚才暂停的地方恢复运行，和正常启动一样继续进行爬取。该功能对于我们的示例网站而言用处不大，因为要下载的页面数量是可控的。不过，对于那些需要爬取几个月的大型网站而言，能够暂停和恢复爬虫就非常方便了。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00059.jpeg" width="8%"/>　</p>
+
+    <p class="zw">有一些边界情况在这里没有覆盖，可能会在恢复爬取时产生问题，比如cookie和会话过期等。此类问题可以从Scrapy的官方文档中进行详细了解，其网址为<code class="calibre4">http://doc.scrapy.org/en/latest/topics/jobs.html</code>。</p>
+  </blockquote>
+
+  <h3 class="calibre13" id="nav_point_116">Scrapy性能调优</h3>
+
+  <p class="zw">如果我们检测示例网站的初始完整抓取，记录开始和结束时间的话，会发现该抓取过程花费了大约1,697秒的时间。如果我们计算每个页面（平均）多少秒的话，会得到每个页面大约花费了6秒的时间。已知我们没有使用Scrapy的并发功能，以及我们在两次请求之间添加了5秒的延时，也就意味着Scrapy解析以及抽取数据的时间大约在每个页面1秒左右（请回顾第2章中的内容，我们使用XPath的最快抓取是1.07s）。本书作者之一Richard Lawson在PyCon 2014的演讲中对比了不同网络爬虫库的速度，即便如此，Scrapy仍然比我能找到的任何其他爬虫库都快得多。我编写过一个简单的Google搜索爬虫，每秒返回（平均）100个请求。从那之后，Scrapy又经过了很长的一段路，我也总是推荐它作为性能最好的Python爬虫框架。</p>
+
+  <p class="zw">除了利用Scrapy使用的并发性（通过Twisted）以外，Scrapy还可以使用类似页面缓存以及其他性能注意事项（比如利用代理以允许针对同一站点的更多并发请求）进行调优。为了安装缓存，你应该首先阅读缓存中间件的文档（<code class="calibre4">https://doc.scrapy.org/en/latest/topics/downloader-middleware.html#module-scrapy.downloadermiddlewares.httpcache</code>）。你可能已经在<code class="calibre4">settings.py</code>文件中见到过几个很好的实现正确缓存设置的例子。对于实现代理来说，也有一些很有帮助的库（因为Scrapy只能访问简单的中间件类）。当前最流行的库是<code class="calibre4">scrapy-proxies</code>，其地址为<code class="calibre4">https://github.com/aivarsk/scrapy-proxies</code>，它已经支持Python 3，并且很容易整合。</p>
+
+  <p class="zw">和往常一样，库和推荐的设置可能会改变，因此阅读最新的Scrapy文档应该始终是你检测性能以及变更爬虫的第一站。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_117">8.5　使用Portia编写可视化爬虫</h2>
+
+  <p class="zw">Portia是一款基于Scrapy开发的开源工具，该工具可以通过点击要抓取的网页部分来创建爬虫。该方法要比手工创建CSS或XPath选择器的方式更加方便。</p>
+
+  <h3 class="calibre13" id="nav_point_118">8.5.1　安装</h3>
+
+  <p class="zw">Portia是一款非常强大的工具，为了实现其功能需要依赖很多外部库。由于该工具相对较新，因此下面我们会稍微介绍一下它的安装步骤。如果未来该工具的安装步骤有所简化，可以从其最新文档中获取安装方法。当前运行Portia的推荐方式是使用Docker（开源容器框架）。如果你还没有安装Docker，则需要遵照最新的说明先进行安装。</p>
+
+  <p class="zw">Docker安装好并运行起来后，你可以拉取<code class="calibre4">scrapinghub</code>的镜像并启动。首先，你需要位于想要创建新的Portia项目的目录中，并运行如下命令。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ docker run -v ~/portia_projects:/app/data/projects:rw -p 9001:9001</strong>
+<strong class="calibre1">scrapinghub/portia:portia-2.0.7</strong>
+<strong class="calibre1">Unable to find image 'scrapinghub/portia:portia-2.0.7' locally</strong>
+<strong class="calibre1">latest: Pulling from scrapinghub/portia</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">2017-03-28 12:57:42.711720 [-] Site starting on 9002</strong>
+<strong class="calibre1">2017-03-28 12:57:42.711818 [-] Starting factory &lt;slyd.server.Site instance</strong>
+<strong class="calibre1">at 0x7f57334e61b8&gt;</strong></code></pre>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00062.jpeg" width="8%"/>　</p>
+
+    <p class="zw">在该命令中，我们创建了一个新的目录<code class="calibre4">~/portia_projects</code>。如果你希望将Portia项目存储在其他地方，可以修改<code class="calibre4">-v</code>命令，指向你想要存储Portia文件的绝对文件路径。</p>
+  </blockquote>
+
+  <p class="zw">最后几行显示Portia网站已经启动并且正在运行。现在，可以通过浏览器访问<code class="calibre4">http://localhost:9001/</code>进入该网站。</p>
+
+  <p class="zw">初始屏幕类似图8.1所示。</p>
+
+  <p class="tu"><img alt="\\fuwuqi6\YDStu\18-0069\0801.tif" class="calibre30" src="../images/00018.png" width="75%"/></p>
+
+  <p class="tu_ti">图8.1</p>
+
+  <p class="zw">如果你在安装过程中遇到了问题，可以查看Portia的问题页，网址为<code class="calibre4">https://github.com/scrapinghub/portia/issues</code>，也许其他人已经经历过相同的问题并且找到了解决方案。在本书中，我使用了指定的Portia镜像（<code class="calibre4">scrapinghub/portia:portia-2.0.7</code>），不过你也可以尝试使用官方发布的最新版本：<code class="calibre4">scrapinghub/portia</code>。</p>
+
+  <p class="zw">此外，我建议始终使用README文件及Portia文档中记录的最新推荐说明，即使这些说明与本节中介绍的内容有所区别。Portia目前正处于活跃的开发期，因此在本书出版之后，说明文档可能会发生变化。</p>
+
+  <h3 class="calibre13" id="nav_point_119">8.5.2　标注</h3>
+
+  <p class="zw">在Portia的启动页，页面会提示你输入项目名称。当你输入该文本后，将会有一个用于输入待抓取网站URL的文本框，比如输入<code class="calibre4">http://example.python-scraping.com</code>。</p>
+
+  <p class="zw">当你输入完成后，Portia将会加载项目视图，如图8.2所示。</p>
+
+  <p class="tu"><img alt="..\0802.jpg" class="calibre30" src="../images/00024.jpeg" width="75%"/></p>
+
+  <p class="tu_ti">图8.2</p>
+
+  <p class="zw">当你点击<strong class="calibre1">New Spider</strong>按钮时，可以看到如图8.3所示的爬虫视图。</p>
+
+  <p class="tu"><img alt="..\0803.jpg" class="calibre30" src="../images/00064.jpeg" width="75%"/></p>
+
+  <p class="tu_ti">图8.3</p>
+
+  <p class="zw">你会回忆起本章前面构建的Scrapy爬虫中的一些字段（比如起始页以及链接爬取规则）。默认情况下，爬虫名称被设置为域名（<code class="calibre4">example. python-scraping.com</code>），该名称可以通过单击相应标签进行修改。</p>
+
+  <p class="zw">接下来，单击New Sample按钮，开始从页面中收集数据，如图8.4所示。</p>
+
+  <p class="tu"><img alt="..\0804.jpg" class="calibre30" src="../images/00028.jpeg" width="75%"/></p>
+
+  <p class="tu_ti">图8.4</p>
+
+  <p class="zw">现在，当你滚动页面中的不同元素时，可以看到它们会被高亮显示。你还可以在网站右侧区域的Inspector选项卡中查看CSS选择器。</p>
+
+  <p class="zw">由于我们想要抓取每个国家（或地区）页面中的人口数量这个元素，因此我们首先需要从首页导航到各个国家（或地区）的页面。为了实现该目标，我们先要单击Close Sample按钮，然后再单击任何国家（或地区）。当国家（或地区）页面被加载时，我们可以再次单击New Sample。</p>
+
+  <p class="zw">要想为我们的item添加用于抽取的字段，我们需要单击人口数量字段。在我们操作之后，会添加一个item，然后我们就可以查看抽取到的信息了。上述过程如图8.5所示。</p>
+
+  <p class="tu"><img alt="..\0805.jpg" class="calibre17" src="../images/00030.jpeg" width="90%"/></p>
+
+  <p class="tu_ti">图8.5</p>
+
+  <p class="zw">我们可以使用左侧的文本字段区域重命名字段，只需输入新的名称population即可。然后，我们可以单击Add Field按钮。要想添加更多的字段，我们可以通过先单击大的+按钮，然后以相同的方式选择字段值，对国家（或地区）名称以及任何其他我们感兴趣的字段进行相同的操作即可。标注字段将会在网页中高亮显示，你可以在extracted items区域查看抽取的数据，如图8.6所示。</p>
+
+  <p class="tu"><img alt="..\0806.jpg" class="calibre30" src="../images/00033.jpeg" width="75%"/></p>
+
+  <p class="tu_ti">图8.6</p>
+
+  <p class="zw">如果你想删除任何字段，只需使用字段名称旁边的红色的-符号即可。当标注完成后，单击顶部蓝色的Close sample按钮。如果之后你想下载爬虫，用于在Scrapy项目中运行，则可以通过单击爬虫名称后边的链接来实现，如图8.7所示。</p>
+
+  <p class="tu"><img alt="..\0807.jpg" class="calibre30" src="../images/00038.jpeg" width="75%"/></p>
+
+  <p class="tu_ti">图8.7</p>
+
+  <p class="zw">你还可以在挂载的目录<code class="calibre4">~/portia_projects</code>中查看你的所有爬虫及其设置。</p>
+
+  <h3 class="calibre13" id="nav_point_120">8.5.3　运行爬虫</h3>
+
+  <p class="zw">如果你是以Docker容器的方式运行Portia，那么你可以使用相同的Docker镜像运行<code class="calibre4">portiacrawl</code>命令。首先，使用<em class="calibre16">Ctrl + C</em>停止你当前的容器。然后，运行如下命令。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">docker run -i -t --rm -v ~/portia_projects:/app/data/projects:rw -v
+&lt;OUTPUT_FOLDER&gt;:/mnt:rw -p 9001:9001 scrapinghub/portia portiacrawl
+/app/data/projects/&lt;PROJECT_NAME&gt; example.python-scraping.com -o
+/mnt/example.python-scraping.com.jl</code></pre>
+
+  <p class="zw">请确保更新OUTPUT_FOLDER为你想要存储输出文件的绝对路径，PROJECT_NAME变量为你在启动项目时使用的名称（我这里是<code class="calibre4">my_example_site</code>）。你应该可以看到和运行Scrapy时相似的输出。你可能会注意到有一些错误信息（这是由于未修改下载延迟或并发请求造成的——这两种情况都可以在Web界面中通过修改项目和爬虫的设置来解决）。当使用<code class="calibre4">-s</code>选项运行时，你还可以向爬虫传输额外的设置。我的命令如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">docker run -i -t --rm -v ~/portia_projects:/app/data/projects:rw -v
+~/portia_output:/mnt:rw -p 9001:9001 scrapinghub/portia portiacrawl
+/app/data/projects/my_example_site example.python-scraping.com -o
+/mnt/example.python-scraping.com.jl-s CONCURRENT_REQUESTS_PER_DOMAIN=1 -s
+DOWNLOAD_DELAY=5</code></pre>
+
+  <h3 class="calibre13" id="nav_point_121">8.5.4　检查结果</h3>
+
+  <p class="zw">当爬虫完成时，你可以在你创建的输出目录中查看结果。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">$ head ~/portia_output/example.python-scraping.com.jl
+{"_type": "Example web scraping website1", "url":
+"http://example.python-scraping.com/view/Antigua-and-Barbuda-10",
+"phone_code": ["+1-268"], "_template": "98ed-4785-8e1b",
+"country_or_district_name": ["Antigua and Barbuda"], "population": ["86,754"]}
+{"_template": "98ed-4785-8e1b", "country_or_district_name": ["Antarctica"],
+"_type": "Example web scraping website1", "url":
+"http://example.python-scraping.com/view/Antarctica-9", "population":
+["0"]}
+{"_type": "Example web scraping website1", "url":
+"http://example.python-scraping.com/view/Anguilla-8", "phone_code":
+["+1-264"], "_template": "98ed-4785-8e1b", "country_name":
+["Anguilla"], "population": ["13,254"]}
+...</code></pre>
+
+  <p class="zw">这里是一些抓取结果的示例。如你所见，它们是JSON格式的。如果你想导出为CSV格式，只需修改输出文件名以<code class="calibre4">.csv</code>结尾即可。</p>
+
+  <p class="zw">只需在网站上点击几下，并且了解一些Docker的说明，你就能够抓取示例网站了！Portia是一个非常方便的工具，尤其适用于简单网站，或是你需要与非开发人员合作时。另一方面，对于更复杂的网站，你始终可以选择是直接在Python中开发Scrapy爬虫，还是使用Portia开发第一个迭代，并使用自己的Python技能对其进行扩展。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_122">8.6　使用Scrapely实现自动化抓取</h2>
+
+  <p class="zw">为了抓取标注域，Portia使用了<strong class="calibre1">Scrapely</strong>库，这是一款独立于Portia之外的非常有用的开源工具。Scrapely使用训练数据建立从网页中抓取哪些内容的模型。之后，训练模型可以在抓取相同结构的其他网页时得以应用。</p>
+
+  <p class="zw">你可以使用<code class="calibre4">pip</code>安装它。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">pip install scrapely</strong></code></pre>
+
+  <p class="zw">下面是该工具的运行示例。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">&gt;&gt;&gt; from scrapely import Scraper</strong>
+<strong class="calibre1">&gt;&gt;&gt; s = Scraper()</strong>
+<strong class="calibre1">&gt;&gt;&gt; train_url = 'http://example.python-scraping.com/view/Afghanistan-1'</strong>
+<strong class="calibre1">&gt;&gt;&gt;    s.train(train_url, {'name': 'Afghanistan', 'population': '29,121,286'})</strong>
+<strong class="calibre1">&gt;&gt;&gt; test_url = 'http://example. python-scraping.com/view/United-Kingdom-239'</strong>
+<strong class="calibre1">&gt;&gt;&gt; s.scrape(test_url)</strong>
+<strong class="calibre1">[{u'name': [u'United Kingdom'], u'population': [u'62,348,447']}]</strong></code></pre>
+
+  <p class="zw">首先，将我们想要从<code class="calibre4">Afghanistan</code>网页中抓取的数据传给Scrapely以训练模型（本例中是国家（或地区）名称和人口数量）。然后，在另一个不同的国家（或地区）页上应用该模型，可以看出Scrapely使用该训练模型返回了正确的国家（或地区）名称和人口数量。</p>
+
+  <p class="zw">这一工作流允许我们无须知晓网页结构，只是把所需内容抽取出来作为训练案例（或多个训练案例），就可以抓取网页。如果网页内容是静态的，在布局发生改变时，这种方法就会非常有用。例如一个新闻网站，已发表文章的文本一般不会发生变化，但是其布局可能会更新。这种情况下，Scrapely可以使用相同的数据重新训练，针对新的网站结构生成模型。为了使该例正常工作，你需要将训练数据存储在某个地方以便复用。</p>
+
+  <p class="zw">在测试Scrapely时，此处使用的示例网页具有良好的结构，每个数据类型的标签和属性都是独立的，因此Scrapely可以很轻松地正确训练模型。而对于更加复杂的网页，Scrapely可能会在定位内容时失败。在Scrapely的文档中会警告你应当“谨慎训练”。由于机器学习正在逐渐变快变简单，也许会有更加稳健的自动化爬虫库发布，不过就目前而言，了解如何使用本书中介绍的技术直接抓取网站仍然是非常有用的。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_123">8.7　本章小结</h2>
+
+  <p class="zw">本章首先介绍了网络爬虫框架Scrapy，该框架拥有很多能够改善抓取网站效率的高级功能。然后，我们介绍了Portia，它提供了生成Scrapy爬虫的可视化界面。最后我们试用了Scrapely（Portia中使用了该库），它通过先训练简单模型的方式自动化抓取网页。</p>
+
+  <p class="zw">下一章中，我们将应用前面学到的这些技巧来抓取现实世界中的网站。</p>
+
+  <p class="zw"><br class="sgc-toc-level1" id="calibre_pb_1"/></p>
+</body>
+</html>

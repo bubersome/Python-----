@@ -1,0 +1,753 @@
+<?xml version='1.0' encoding='utf-8'?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="zho">
+  <head>
+    <meta name="dtb:uid" content="92c14cd2-9a62-41a1-9e84-98fd85079231"/>
+    <meta name="dtb:depth" content="4"/>
+    <meta name="dtb:generator" content="calibre (5.42.0)"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>用Python写网络爬虫（第2版）</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="num_1" playOrder="1" class="chapter">
+      <navLabel>
+        <text>版权信息</text>
+      </navLabel>
+      <content src="text/part0001.html"/>
+    </navPoint>
+    <navPoint id="num_2" playOrder="2" class="chapter">
+      <navLabel>
+        <text>版权</text>
+      </navLabel>
+      <content src="text/part0002.html"/>
+    </navPoint>
+    <navPoint id="num_3" playOrder="3" class="chapter">
+      <navLabel>
+        <text>版权声明</text>
+      </navLabel>
+      <content src="text/part0003.html"/>
+    </navPoint>
+    <navPoint id="num_4" playOrder="4" class="chapter">
+      <navLabel>
+        <text>内容提要</text>
+      </navLabel>
+      <content src="text/part0004.html"/>
+    </navPoint>
+    <navPoint id="num_5" playOrder="5" class="chapter">
+      <navLabel>
+        <text>关于作者</text>
+      </navLabel>
+      <content src="text/part0005.html"/>
+    </navPoint>
+    <navPoint id="num_6" playOrder="6" class="chapter">
+      <navLabel>
+        <text>关于审稿人</text>
+      </navLabel>
+      <content src="text/part0006.html"/>
+    </navPoint>
+    <navPoint id="num_7" playOrder="7" class="chapter">
+      <navLabel>
+        <text>前言</text>
+      </navLabel>
+      <content src="text/part0007.html"/>
+    </navPoint>
+    <navPoint id="num_8" playOrder="8" class="chapter">
+      <navLabel>
+        <text>资源与支持</text>
+      </navLabel>
+      <content src="text/part0008.html"/>
+    </navPoint>
+    <navPoint id="num_9" playOrder="9" class="chapter">
+      <navLabel>
+        <text>第1章 网络爬虫简介</text>
+      </navLabel>
+      <content src="text/part0009.html"/>
+      <navPoint id="num_10" playOrder="10" class="chapter">
+        <navLabel>
+          <text>1.1 网络爬虫何时有用</text>
+        </navLabel>
+        <content src="text/part0009.html#nav_point_15"/>
+      </navPoint>
+      <navPoint id="num_11" playOrder="11" class="chapter">
+        <navLabel>
+          <text>1.2 网络爬虫是否合法</text>
+        </navLabel>
+        <content src="text/part0009.html#nav_point_16"/>
+      </navPoint>
+      <navPoint id="num_12" playOrder="12" class="chapter">
+        <navLabel>
+          <text>1.3 Python 3</text>
+        </navLabel>
+        <content src="text/part0009.html#nav_point_17"/>
+      </navPoint>
+      <navPoint id="num_13" playOrder="13" class="chapter">
+        <navLabel>
+          <text>1.4 背景调研</text>
+        </navLabel>
+        <content src="text/part0009.html#nav_point_18"/>
+        <navPoint id="num_14" playOrder="14" class="chapter">
+          <navLabel>
+            <text>1.4.1 检查robots.txt</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_19"/>
+        </navPoint>
+        <navPoint id="num_15" playOrder="15" class="chapter">
+          <navLabel>
+            <text>1.4.2 检查网站地图</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_20"/>
+        </navPoint>
+        <navPoint id="num_16" playOrder="16" class="chapter">
+          <navLabel>
+            <text>1.4.3 估算网站大小</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_21"/>
+        </navPoint>
+        <navPoint id="num_17" playOrder="17" class="chapter">
+          <navLabel>
+            <text>1.4.4 识别网站所用技术</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_22"/>
+        </navPoint>
+        <navPoint id="num_18" playOrder="18" class="chapter">
+          <navLabel>
+            <text>1.4.5 寻找网站所有者</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_23"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_19" playOrder="19" class="chapter">
+        <navLabel>
+          <text>1.5 编写第一个网络爬虫</text>
+        </navLabel>
+        <content src="text/part0009.html#nav_point_24"/>
+        <navPoint id="num_20" playOrder="20" class="chapter">
+          <navLabel>
+            <text>1.5.1 抓取与爬取的对比</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_25"/>
+        </navPoint>
+        <navPoint id="num_21" playOrder="21" class="chapter">
+          <navLabel>
+            <text>1.5.2 下载网页</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_26"/>
+        </navPoint>
+        <navPoint id="num_22" playOrder="22" class="chapter">
+          <navLabel>
+            <text>1.5.3 网站地图爬虫</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_27"/>
+        </navPoint>
+        <navPoint id="num_23" playOrder="23" class="chapter">
+          <navLabel>
+            <text>1.5.4 ID遍历爬虫</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_28"/>
+        </navPoint>
+        <navPoint id="num_24" playOrder="24" class="chapter">
+          <navLabel>
+            <text>1.5.5 链接爬虫</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_29"/>
+        </navPoint>
+        <navPoint id="num_25" playOrder="25" class="chapter">
+          <navLabel>
+            <text>1.5.6 使用requests库</text>
+          </navLabel>
+          <content src="text/part0009.html#nav_point_31"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_26" playOrder="26" class="chapter">
+        <navLabel>
+          <text>1.6 本章小结</text>
+        </navLabel>
+        <content src="text/part0009.html#nav_point_32"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_27" playOrder="27" class="chapter">
+      <navLabel>
+        <text>第2章 数据抓取</text>
+      </navLabel>
+      <content src="text/part0010.html"/>
+      <navPoint id="num_28" playOrder="28" class="chapter">
+        <navLabel>
+          <text>2.1 分析网页</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_34"/>
+      </navPoint>
+      <navPoint id="num_29" playOrder="29" class="chapter">
+        <navLabel>
+          <text>2.2 3种网页抓取方法</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_35"/>
+        <navPoint id="num_30" playOrder="30" class="chapter">
+          <navLabel>
+            <text>2.2.1 正则表达式</text>
+          </navLabel>
+          <content src="text/part0010.html#nav_point_36"/>
+        </navPoint>
+        <navPoint id="num_31" playOrder="31" class="chapter">
+          <navLabel>
+            <text>2.2.2 Beautiful Soup</text>
+          </navLabel>
+          <content src="text/part0010.html#nav_point_37"/>
+        </navPoint>
+        <navPoint id="num_32" playOrder="32" class="chapter">
+          <navLabel>
+            <text>2.2.3 Lxml</text>
+          </navLabel>
+          <content src="text/part0010.html#nav_point_38"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_33" playOrder="33" class="chapter">
+        <navLabel>
+          <text>2.3 CSS选择器和浏览器控制台</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_39"/>
+      </navPoint>
+      <navPoint id="num_34" playOrder="34" class="chapter">
+        <navLabel>
+          <text>2.4 XPath选择器</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_40"/>
+      </navPoint>
+      <navPoint id="num_35" playOrder="35" class="chapter">
+        <navLabel>
+          <text>2.5 LXML和家族树</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_41"/>
+      </navPoint>
+      <navPoint id="num_36" playOrder="36" class="chapter">
+        <navLabel>
+          <text>2.6 性能对比</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_42"/>
+      </navPoint>
+      <navPoint id="num_37" playOrder="37" class="chapter">
+        <navLabel>
+          <text>2.7 抓取结果</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_43"/>
+        <navPoint id="num_38" playOrder="38" class="chapter">
+          <navLabel>
+            <text>2.7.1 抓取总结</text>
+          </navLabel>
+          <content src="text/part0010.html#nav_point_44"/>
+        </navPoint>
+        <navPoint id="num_39" playOrder="39" class="chapter">
+          <navLabel>
+            <text>2.7.2 为链接爬虫添加抓取回调</text>
+          </navLabel>
+          <content src="text/part0010.html#nav_point_45"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_40" playOrder="40" class="chapter">
+        <navLabel>
+          <text>2.8 本章小结</text>
+        </navLabel>
+        <content src="text/part0010.html#nav_point_46"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_41" playOrder="41" class="chapter">
+      <navLabel>
+        <text>第3章 下载缓存</text>
+      </navLabel>
+      <content src="text/part0011.html"/>
+      <navPoint id="num_42" playOrder="42" class="chapter">
+        <navLabel>
+          <text>3.1 何时使用缓存</text>
+        </navLabel>
+        <content src="text/part0011.html#nav_point_48"/>
+      </navPoint>
+      <navPoint id="num_43" playOrder="43" class="chapter">
+        <navLabel>
+          <text>3.2 为链接爬虫添加缓存支持</text>
+        </navLabel>
+        <content src="text/part0011.html#nav_point_49"/>
+      </navPoint>
+      <navPoint id="num_44" playOrder="44" class="chapter">
+        <navLabel>
+          <text>3.3 磁盘缓存</text>
+        </navLabel>
+        <content src="text/part0011.html#nav_point_50"/>
+        <navPoint id="num_45" playOrder="45" class="chapter">
+          <navLabel>
+            <text>3.3.1 实现磁盘缓存</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_51"/>
+        </navPoint>
+        <navPoint id="num_46" playOrder="46" class="chapter">
+          <navLabel>
+            <text>3.3.2 缓存测试</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_52"/>
+        </navPoint>
+        <navPoint id="num_47" playOrder="47" class="chapter">
+          <navLabel>
+            <text>3.3.3 节省磁盘空间</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_53"/>
+        </navPoint>
+        <navPoint id="num_48" playOrder="48" class="chapter">
+          <navLabel>
+            <text>3.3.4 清理过期数据</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_54"/>
+        </navPoint>
+        <navPoint id="num_49" playOrder="49" class="chapter">
+          <navLabel>
+            <text>3.3.5 磁盘缓存缺点</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_55"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_50" playOrder="50" class="chapter">
+        <navLabel>
+          <text>3.4 键值对存储缓存</text>
+        </navLabel>
+        <content src="text/part0011.html#nav_point_56"/>
+        <navPoint id="num_51" playOrder="51" class="chapter">
+          <navLabel>
+            <text>3.4.1 键值对存储是什么</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_57"/>
+        </navPoint>
+        <navPoint id="num_52" playOrder="52" class="chapter">
+          <navLabel>
+            <text>3.4.2 安装Redis</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_58"/>
+        </navPoint>
+        <navPoint id="num_53" playOrder="53" class="chapter">
+          <navLabel>
+            <text>3.4.3 Redis概述</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_59"/>
+        </navPoint>
+        <navPoint id="num_54" playOrder="54" class="chapter">
+          <navLabel>
+            <text>3.4.4 Redis缓存实现</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_60"/>
+        </navPoint>
+        <navPoint id="num_55" playOrder="55" class="chapter">
+          <navLabel>
+            <text>3.4.5 压缩</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_61"/>
+        </navPoint>
+        <navPoint id="num_56" playOrder="56" class="chapter">
+          <navLabel>
+            <text>3.4.6 测试缓存</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_62"/>
+        </navPoint>
+        <navPoint id="num_57" playOrder="57" class="chapter">
+          <navLabel>
+            <text>3.4.7 探索requests-cache</text>
+          </navLabel>
+          <content src="text/part0011.html#nav_point_63"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_58" playOrder="58" class="chapter">
+        <navLabel>
+          <text>3.5 本章小结</text>
+        </navLabel>
+        <content src="text/part0011.html#nav_point_64"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_59" playOrder="59" class="chapter">
+      <navLabel>
+        <text>第4章 并发下载</text>
+      </navLabel>
+      <content src="text/part0012.html"/>
+      <navPoint id="num_60" playOrder="60" class="chapter">
+        <navLabel>
+          <text>4.1 100万个网页</text>
+        </navLabel>
+        <content src="text/part0012.html#nav_point_66"/>
+        <navPoint id="num_61" playOrder="61" class="chapter">
+          <navLabel>
+            <text>4.1.1 解析Alexa列表</text>
+          </navLabel>
+          <content src="text/part0012.html#nav_point_67"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_62" playOrder="62" class="chapter">
+        <navLabel>
+          <text>4.2 串行爬虫</text>
+        </navLabel>
+        <content src="text/part0012.html#nav_point_68"/>
+      </navPoint>
+      <navPoint id="num_63" playOrder="63" class="chapter">
+        <navLabel>
+          <text>4.3 多线程爬虫</text>
+        </navLabel>
+        <content src="text/part0012.html#nav_point_69"/>
+      </navPoint>
+      <navPoint id="num_64" playOrder="64" class="chapter">
+        <navLabel>
+          <text>4.4 线程和进程如何工作</text>
+        </navLabel>
+        <content src="text/part0012.html#nav_point_70"/>
+        <navPoint id="num_65" playOrder="65" class="chapter">
+          <navLabel>
+            <text>4.4.1 实现多线程爬虫</text>
+          </navLabel>
+          <content src="text/part0012.html#nav_point_71"/>
+        </navPoint>
+        <navPoint id="num_66" playOrder="66" class="chapter">
+          <navLabel>
+            <text>4.4.2 多进程爬虫</text>
+          </navLabel>
+          <content src="text/part0012.html#nav_point_72"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_67" playOrder="67" class="chapter">
+        <navLabel>
+          <text>4.5 性能</text>
+        </navLabel>
+        <content src="text/part0012.html#nav_point_73"/>
+        <navPoint id="num_68" playOrder="68" class="chapter">
+          <navLabel>
+            <text>4.5.1 Python多进程与GIL</text>
+          </navLabel>
+          <content src="text/part0012.html#nav_point_74"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_69" playOrder="69" class="chapter">
+        <navLabel>
+          <text>4.6 本章小结</text>
+        </navLabel>
+        <content src="text/part0012.html#nav_point_75"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_70" playOrder="70" class="chapter">
+      <navLabel>
+        <text>第5章 动态内容</text>
+      </navLabel>
+      <content src="text/part0013.html"/>
+      <navPoint id="num_71" playOrder="71" class="chapter">
+        <navLabel>
+          <text>5.1 动态网页示例</text>
+        </navLabel>
+        <content src="text/part0013.html#nav_point_77"/>
+      </navPoint>
+      <navPoint id="num_72" playOrder="72" class="chapter">
+        <navLabel>
+          <text>5.2 对动态网页进行逆向工程</text>
+        </navLabel>
+        <content src="text/part0013.html#nav_point_78"/>
+        <navPoint id="num_73" playOrder="73" class="chapter">
+          <navLabel>
+            <text>5.2.1 边界情况</text>
+          </navLabel>
+          <content src="text/part0013.html#nav_point_79"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_74" playOrder="74" class="chapter">
+        <navLabel>
+          <text>5.3 渲染动态网页</text>
+        </navLabel>
+        <content src="text/part0013.html#nav_point_80"/>
+        <navPoint id="num_75" playOrder="75" class="chapter">
+          <navLabel>
+            <text>5.3.1 PyQt还是PySide</text>
+          </navLabel>
+          <content src="text/part0013.html#nav_point_81"/>
+        </navPoint>
+        <navPoint id="num_76" playOrder="76" class="chapter">
+          <navLabel>
+            <text>5.3.2 执行JavaScript</text>
+          </navLabel>
+          <content src="text/part0013.html#nav_point_82"/>
+        </navPoint>
+        <navPoint id="num_77" playOrder="77" class="chapter">
+          <navLabel>
+            <text>5.3.3 使用WebKit与网站交互</text>
+          </navLabel>
+          <content src="text/part0013.html#nav_point_83"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_78" playOrder="78" class="chapter">
+        <navLabel>
+          <text>5.4 渲染类</text>
+        </navLabel>
+        <content src="text/part0013.html#nav_point_84"/>
+        <navPoint id="num_79" playOrder="79" class="chapter">
+          <navLabel>
+            <text>5.4.1 Selenium</text>
+          </navLabel>
+          <content src="text/part0013.html#nav_point_85"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_80" playOrder="80" class="chapter">
+        <navLabel>
+          <text>5.5 本章小结</text>
+        </navLabel>
+        <content src="text/part0013.html#nav_point_86"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_81" playOrder="81" class="chapter">
+      <navLabel>
+        <text>第6章 表单交互</text>
+      </navLabel>
+      <content src="text/part0014.html"/>
+      <navPoint id="num_82" playOrder="82" class="chapter">
+        <navLabel>
+          <text>6.1 登录表单</text>
+        </navLabel>
+        <content src="text/part0014.html#nav_point_88"/>
+        <navPoint id="num_83" playOrder="83" class="chapter">
+          <navLabel>
+            <text>6.1.1 从浏览器加载cookie</text>
+          </navLabel>
+          <content src="text/part0014.html#nav_point_89"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_84" playOrder="84" class="chapter">
+        <navLabel>
+          <text>6.2 支持内容更新的登录脚本扩展</text>
+        </navLabel>
+        <content src="text/part0014.html#nav_point_90"/>
+      </navPoint>
+      <navPoint id="num_85" playOrder="85" class="chapter">
+        <navLabel>
+          <text>6.3 使用Selenium实现自动化表单处理</text>
+        </navLabel>
+        <content src="text/part0014.html#nav_point_91"/>
+        <navPoint id="num_86" playOrder="86" class="chapter">
+          <navLabel>
+            <text>6.3.1 网络抓取时的“人类化”方法</text>
+          </navLabel>
+          <content src="text/part0014.html#nav_point_92"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_87" playOrder="87" class="chapter">
+        <navLabel>
+          <text>6.4 本章小结</text>
+        </navLabel>
+        <content src="text/part0014.html#nav_point_93"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_88" playOrder="88" class="chapter">
+      <navLabel>
+        <text>第7章 验证码处理</text>
+      </navLabel>
+      <content src="text/part0015.html"/>
+      <navPoint id="num_89" playOrder="89" class="chapter">
+        <navLabel>
+          <text>7.1 注册账号</text>
+        </navLabel>
+        <content src="text/part0015.html#nav_point_95"/>
+        <navPoint id="num_90" playOrder="90" class="chapter">
+          <navLabel>
+            <text>7.1.1 加载验证码图像</text>
+          </navLabel>
+          <content src="text/part0015.html#nav_point_96"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_91" playOrder="91" class="chapter">
+        <navLabel>
+          <text>7.2 光学字符识别</text>
+        </navLabel>
+        <content src="text/part0015.html#nav_point_97"/>
+        <navPoint id="num_92" playOrder="92" class="chapter">
+          <navLabel>
+            <text>7.2.1 进一步改善</text>
+          </navLabel>
+          <content src="text/part0015.html#nav_point_98"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_93" playOrder="93" class="chapter">
+        <navLabel>
+          <text>7.3 处理复杂验证码</text>
+        </navLabel>
+        <content src="text/part0015.html#nav_point_99"/>
+      </navPoint>
+      <navPoint id="num_94" playOrder="94" class="chapter">
+        <navLabel>
+          <text>7.4 使用验证码处理服务</text>
+        </navLabel>
+        <content src="text/part0015.html#nav_point_100"/>
+        <navPoint id="num_95" playOrder="95" class="chapter">
+          <navLabel>
+            <text>7.4.1 9kw入门</text>
+          </navLabel>
+          <content src="text/part0015.html#nav_point_101"/>
+        </navPoint>
+        <navPoint id="num_96" playOrder="96" class="chapter">
+          <navLabel>
+            <text>7.4.2 报告错误</text>
+          </navLabel>
+          <content src="text/part0015.html#nav_point_103"/>
+        </navPoint>
+        <navPoint id="num_97" playOrder="97" class="chapter">
+          <navLabel>
+            <text>7.4.3 与注册功能集成</text>
+          </navLabel>
+          <content src="text/part0015.html#nav_point_104"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_98" playOrder="98" class="chapter">
+        <navLabel>
+          <text>7.5 验证码与机器学习</text>
+        </navLabel>
+        <content src="text/part0015.html#nav_point_105"/>
+      </navPoint>
+      <navPoint id="num_99" playOrder="99" class="chapter">
+        <navLabel>
+          <text>7.6 本章小结</text>
+        </navLabel>
+        <content src="text/part0015.html#nav_point_106"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_100" playOrder="100" class="chapter">
+      <navLabel>
+        <text>第8章 Scrapy</text>
+      </navLabel>
+      <content src="text/part0016.html"/>
+      <navPoint id="num_101" playOrder="101" class="chapter">
+        <navLabel>
+          <text>8.1 安装Scrapy</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_108"/>
+      </navPoint>
+      <navPoint id="num_102" playOrder="102" class="chapter">
+        <navLabel>
+          <text>8.2 启动项目</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_109"/>
+        <navPoint id="num_103" playOrder="103" class="chapter">
+          <navLabel>
+            <text>8.2.1 定义模型</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_110"/>
+        </navPoint>
+        <navPoint id="num_104" playOrder="104" class="chapter">
+          <navLabel>
+            <text>8.2.2 创建爬虫</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_111"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_105" playOrder="105" class="chapter">
+        <navLabel>
+          <text>8.3 不同的爬虫类型</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_112"/>
+      </navPoint>
+      <navPoint id="num_106" playOrder="106" class="chapter">
+        <navLabel>
+          <text>8.4 使用shell命令抓取</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_113"/>
+        <navPoint id="num_107" playOrder="107" class="chapter">
+          <navLabel>
+            <text>8.4.1 检查结果</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_114"/>
+        </navPoint>
+        <navPoint id="num_108" playOrder="108" class="chapter">
+          <navLabel>
+            <text>8.4.2 中断与恢复爬虫</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_115"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_109" playOrder="109" class="chapter">
+        <navLabel>
+          <text>8.5 使用Portia编写可视化爬虫</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_117"/>
+        <navPoint id="num_110" playOrder="110" class="chapter">
+          <navLabel>
+            <text>8.5.1 安装</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_118"/>
+        </navPoint>
+        <navPoint id="num_111" playOrder="111" class="chapter">
+          <navLabel>
+            <text>8.5.2 标注</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_119"/>
+        </navPoint>
+        <navPoint id="num_112" playOrder="112" class="chapter">
+          <navLabel>
+            <text>8.5.3 运行爬虫</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_120"/>
+        </navPoint>
+        <navPoint id="num_113" playOrder="113" class="chapter">
+          <navLabel>
+            <text>8.5.4 检查结果</text>
+          </navLabel>
+          <content src="text/part0016.html#nav_point_121"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_114" playOrder="114" class="chapter">
+        <navLabel>
+          <text>8.6 使用Scrapely实现自动化抓取</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_122"/>
+      </navPoint>
+      <navPoint id="num_115" playOrder="115" class="chapter">
+        <navLabel>
+          <text>8.7 本章小结</text>
+        </navLabel>
+        <content src="text/part0016.html#nav_point_123"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="num_116" playOrder="116" class="chapter">
+      <navLabel>
+        <text>第9章 综合应用</text>
+      </navLabel>
+      <content src="text/part0017.html"/>
+      <navPoint id="num_117" playOrder="117" class="chapter">
+        <navLabel>
+          <text>9.1 Google搜索引擎</text>
+        </navLabel>
+        <content src="text/part0017.html#nav_point_125"/>
+      </navPoint>
+      <navPoint id="num_118" playOrder="118" class="chapter">
+        <navLabel>
+          <text>9.2 Facebook</text>
+        </navLabel>
+        <content src="text/part0017.html#nav_point_126"/>
+        <navPoint id="num_119" playOrder="119" class="chapter">
+          <navLabel>
+            <text>9.2.1 网站</text>
+          </navLabel>
+          <content src="text/part0017.html#nav_point_127"/>
+        </navPoint>
+        <navPoint id="num_120" playOrder="120" class="chapter">
+          <navLabel>
+            <text>9.2.2 Facebook API</text>
+          </navLabel>
+          <content src="text/part0017.html#nav_point_128"/>
+        </navPoint>
+      </navPoint>
+      <navPoint id="num_121" playOrder="121" class="chapter">
+        <navLabel>
+          <text>9.3 Gap</text>
+        </navLabel>
+        <content src="text/part0017.html#nav_point_129"/>
+      </navPoint>
+      <navPoint id="num_122" playOrder="122" class="chapter">
+        <navLabel>
+          <text>9.4 宝马</text>
+        </navLabel>
+        <content src="text/part0017.html#nav_point_130"/>
+      </navPoint>
+      <navPoint id="num_123" playOrder="123" class="chapter">
+        <navLabel>
+          <text>9.5 本章小结</text>
+        </navLabel>
+        <content src="text/part0017.html#nav_point_131"/>
+      </navPoint>
+    </navPoint>
+  </navMap>
+</ncx>

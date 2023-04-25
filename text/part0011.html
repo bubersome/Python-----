@@ -1,0 +1,697 @@
+<?xml version='1.0' encoding='utf-8'?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>未知</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <link rel="stylesheet" type="text/css" href="../stylesheet.css"/>
+<link rel="stylesheet" type="text/css" href="../page_styles.css"/>
+</head>
+  <body class="calibre">
+  <h1 class="not-in-toc" id="nav_point_47">第3章　下载缓存</h1>
+
+  <p class="zw">在上一章中，我们学习了如何从已爬取到的网页中抓取数据，以及将抓取结果保存到CSV文件中。如果我们还想抓取另外一个字段，比如国旗图片的URL，那么又该怎么做呢？要想抓取这些新增的字段，我们需要重新下载整个网站。对于我们这个小型的示例网站而言，这可能不算特别大的问题。但是，对于那些拥有数百万个网页的网站来说，重新爬取可能需要耗费几个星期的时间。爬虫避免此类问题的方式之一是从开始时就缓存被爬取的网页，这样就可以让每个网页只下载一次。</p>
+
+  <p class="zw">在本章中，我们将介绍几种使用网络爬虫实现该目标的方式。</p>
+
+  <p class="zw">在本章中，我们将介绍如下主题：</p>
+
+  <ul class="calibre5">
+    <li class="calibre6">何时使用缓存；</li>
+
+    <li class="calibre6">为链接爬虫添加缓存支持；</li>
+
+    <li class="calibre6">测试缓存；</li>
+
+    <li class="calibre6">使用requests-cache；</li>
+
+    <li class="calibre6">实现Redis缓存。</li>
+  </ul>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_48">3.1　何时使用缓存</h2>
+
+  <p class="zw">缓存，还是不缓存？对于很多程序员、数据科学家以及进行网络抓取的人来说，是一个需要回答的问题。在本章中，我们将介绍如何对网络爬虫使用缓存，不过你是否应当使用缓存呢？</p>
+
+  <p class="zw">如果你需要执行一个大型爬取工作，那么它可能会由于错误或异常被中断，缓存可以帮助你无须重新爬取那些可能已经抓取过的页面。缓存还可以让你在离线时访问这些页面（出于数据分析或开发的目的）。</p>
+
+  <p class="zw">不过，如果你的最高优先级是获得网站最新和当前的信息，那此时缓存就没有意义。此外，如果你没有计划实现大型或可重复的爬虫，那么可能只需要每次去抓取页面即可。</p>
+
+  <p class="zw">在开始实现之前，你可能想要简要了解一下正在抓取的页面多久会发生变更，或是你应该多久清空缓存并抓取新页面，不过首先让我们学习如何使用缓存！</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_49">3.2　为链接爬虫添加缓存支持</h2>
+
+  <p class="zw">要想支持缓存，我们需要修改第1章中编写的<code class="calibre4">download</code>函数，使其在URL下载之前进行缓存检查。另外，我们还需要把限速功能移至函数内部，只有在真正发生下载时才会触发限速，而在加载缓存时不会触发。为了避免每次下载都要传入多个参数，我们借此机会将<code class="calibre4">download</code>函数重构为一个类，这样只需在构造方法中设置参数，就能在后续下载时多次复用。下面是支持了缓存功能的代码实现。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">from chp1.throttle import Throttle
+from random import choice
+import requests
+
+class Downloader:
+    def __init__(self, delay=5, user_agent='wswp', proxies=None, cache={}):
+       self.throttle = Throttle(delay)
+       self.user_agent = user_agent
+       self.proxies = proxies
+       self.num_retries = None # we will set this per request
+       self.cache = cache
+
+    def __call__(self, url, num_retries=2):
+        self.num_retries = num_retries
+        try:
+             result = self.cache[url]
+             print('Loaded from cache:', url)
+        except KeyError:
+             result = None
+        if result and self.num_retries and 500 &lt;= result['code'] &lt; 600:
+            # server error so ignore result from cache
+            # and re-download
+            result = None
+        if result is None:
+            # result was not loaded from cache
+         # so still need to download
+         self.throttle.wait(url)
+         proxies = choice(self.proxies) if self.proxies else None
+         headers = {'User-Agent': self.user_agent}
+         result = self.download(url, headers, proxies)
+         if self.cache:
+             # save result to cache
+             self.cache[url] = result
+    return result['html']
+
+def download(self, url, headers, proxies, num_retries):
+    ...
+    return {'html': html, 'code': resp.status_code }</code></pre>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00022.jpeg" width="8%"/>　</p>
+
+    <p class="zw">下载类的完整源码可以在本书源码文件的<code class="calibre4">chp3</code>文件夹中找到，其名为<code class="calibre4">downloader.py</code>。</p>
+  </blockquote>
+
+  <p class="zw">前面代码中的<code class="calibre4">Download</code>类有一个比较有意思的部分，那就是<code class="calibre4">__call__</code>特殊方法，在该方法中我们实现了下载前检查缓存的功能。该方法首先会检查URL之前是否已经放入缓存中。默认情况下，缓存是一个Python字典。如果URL已经被缓存，则检查之前的下载中是否遇到了服务器端错误。最后，如果也没有发生过服务器端错误，则表明该缓存结果可用。如果上述检查中的任何一项失败，都需要正常下载该URL，然后将得到的结果添加到缓存中。</p>
+
+  <p class="zw">这里的<code class="calibre4">download</code>方法和之前的<code class="calibre4">download</code>函数基本一样，只是现在返回了HTTP状态码，以便在缓存中存储错误码。此外，这里不再调用自身并检测<code class="calibre4">num_retries</code>，而是先减少<code class="calibre4">self.num_retries</code>，如果还有重试次数剩余的话，则递归使用<code class="calibre4">self.download</code>。当然，如果你只需要一个简单的下载功能，而不需要限速或缓存的话，可以直接调用该方法，这样就不会通过<strong class="calibre1">call</strong>方法调用了。</p>
+
+  <p class="zw">而对于<code class="calibre4">cache</code>类，我们可以通过调用<code class="calibre4">result = cache[url]</code>从<code class="calibre4">cache</code>中加载数据，并通过<code class="calibre4">cache[url] = result</code>向<code class="calibre4">cache</code>中保存结果，这是一个来自Python内置字典数据类型的便捷接口。为了支持该接口，我们的<code class="calibre4">cache</code>类需要定义<code class="calibre4">__getitem__()</code>和<code class="calibre4">__setitem__()</code>这两个特殊的类方法。</p>
+
+  <p class="zw">此外，为了支持缓存功能，链接爬虫的代码也需要进行一些微调，包括添加<code class="calibre4">cache</code>参数、移除限速以及将<code class="calibre4">download</code>函数替换为新的类等，如下面的代码所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">def link_crawler(..., num_retries=2, cache={}):
+    crawl_queue = [seed_url]
+    seen = {seed_url: 0}
+    rp = get_robots(seed_url)
+    D = Downloader(delay=delay, user_agent=user_agent, proxies=proxies,
+cache=cache)
+
+    while crawl_queue:
+        url = crawl_queue.pop()
+        # check url passes robots.txt restrictions
+        if rp.can_fetch(user_agent, url):
+            depth = seen.get(url, 0)
+            if depth == max_depth:
+                continue
+            html = D(url, num_retries=num_retries)
+            if not html:
+                continue
+            ...</code></pre>
+
+  <p class="zw">你会发现<code class="calibre4">num_retries</code>现在链接到了我们的调用中。这样我们就可以基于每个URL使用请求重试次数了。如果我们简单地使用相同的重试次数，而不重设<code class="calibre4">self.num_retries</code>的值，一旦某个页面出现<code class="calibre4">500</code>错误，就会用尽重试次数。</p>
+
+  <p class="zw">你可以在本书源码中的<code class="calibre4">chp3</code>文件夹中再次查看完整代码，其名为<code class="calibre4">advanced_link_crawler.py</code>。现在，这个网络爬虫的基本架构已经准备好了，下面就要开始构建实际的缓存了。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_50">3.3　磁盘缓存</h2>
+
+  <p class="zw">要想缓存下载结果，我们先来尝试最容易想到的方案，将下载到的网页存储到文件系统中。为了实现该功能，我们需要将URL安全地映射为跨平台的文件名。表3.1所示为几大主流文件系统的限制。</p>
+
+  <p class="biao_ti">表3.1</p>
+
+  <table border="1" class="calibre18" width="90%">
+    <thead class="calibre19">
+      <tr class="calibre20">
+        <th class="calibre21">
+          <p class="calibre7">操作系统</p>
+        </th>
+
+        <th class="calibre21">
+          <p class="calibre7">文件系统</p>
+        </th>
+
+        <th class="calibre21">
+          <p class="calibre7">非法文件名字符</p>
+        </th>
+
+        <th class="calibre21">
+          <p class="calibre7">文件名最大长度</p>
+        </th>
+      </tr>
+    </thead>
+
+    <tbody class="calibre22">
+      <tr class="calibre20">
+        <td class="calibre23">
+          <p class="calibre7">Linux</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">Ext3/Ext4</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">/ 和 \0</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">255字节</p>
+        </td>
+      </tr>
+
+      <tr class="calibre24">
+        <td class="calibre23">
+          <p class="calibre7">OS X</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">HFS Plus</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">: 和 \0</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">255个UTF-16编码单元</p>
+        </td>
+      </tr>
+
+      <tr class="calibre20">
+        <td class="calibre23">
+          <p class="calibre7">Windows</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">NTFS</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">\、/、?、:、*、"、&gt;、&lt;和</p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7"></p>
+        </td>
+
+        <td class="calibre23">
+          <p class="calibre7">255个字符</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p class="zw">为了保证在不同文件系统中，我们的文件路径都是安全的，就需要限制其只能包含数字、字母和基本符号，并将其他字符替换为下划线，其实现代码如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">&gt;&gt;&gt; import re</strong>
+<strong class="calibre1">&gt;&gt;&gt; url = 'http://example.python-scraping.com/default/view/Australia-1'</strong>
+<strong class="calibre1">&gt;&gt;&gt; re.sub('[^/0-9a-zA-Z\-.,;_ ]', '_', url)</strong>
+<strong class="calibre1">'http_//example.python-scraping.com/default/view/Australia-1'</strong></code></pre>
+
+  <p class="zw">此外，文件名及其父目录的长度需要限制在255个字符以内（实现代码如下），以满足表3.1中给出的长度限制。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">&gt;&gt;&gt; filename = re.sub('[^/0-9a-zA-Z\-.,;_ ]', '_', url)</strong>
+<strong class="calibre1">&gt;&gt;&gt; filename = '/'.join(segment[:255] for segment in filename.split('/'))</strong>
+<strong class="calibre1">&gt;&gt;&gt; print(filename)</strong>
+<strong class="calibre1">'http_//example.python-scraping.com/default/view/Australia-1'</strong></code></pre>
+
+  <p class="zw">由于这里的URL部分没有超过255个字符，因此文件路径不需要改变。还有一种边界情况需要考虑，那就是URL路径可能会以斜杠（/）结尾，此时斜杠后面的空字符串就会成为一个非法的文件名。但是，如果移除这个斜杠，使用其父字符串作为文件名，又会造成无法保存其他URL的问题。考虑下面这两个URL：</p>
+
+  <ul class="calibre5">
+    <li class="calibre6"><code class="calibre4">http://example.python-scraping.com/index/</code></li>
+
+    <li class="calibre6"><code class="calibre4">http://example.python-scraping.com/index/1</code></li>
+  </ul>
+
+  <p class="zw">如果我们希望这两个URL都能保存下来，就需要以<code class="calibre4">index</code>作为目录名，以文件名1作为子页面。对于像第一个URL路径这样以斜杠结尾的情况，这里使用的解决方案是添加<code class="calibre4">index.html</code>作为其文件名。同样地，当URL路径为空时也需要进行相同的操作。为了解析URL，我们需要使用<code class="calibre4">urlsplit</code>函数，将URL分割成几个部分。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">&gt;&gt;&gt; from urllib.parse import urlsplit</strong>
+<strong class="calibre1">&gt;&gt;&gt; components = urlsplit('http://example.python-scraping.com/index/')</strong>
+<strong class="calibre1">&gt;&gt;&gt; print(components)</strong>
+<strong class="calibre1">SplitResult(scheme='http', netloc='example.python-scraping.com',</strong>
+<strong class="calibre1">path='/index/', query='', fragment='')</strong>
+<strong class="calibre1">&gt;&gt;&gt; print(components.path)</strong>
+<strong class="calibre1">'/index/'</strong></code></pre>
+
+  <p class="zw">该函数提供了解析和处理URL的便捷接口。下面是使用该模块对上述边界情况添加<code class="calibre4">index.html</code>的示例代码。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">&gt;&gt;&gt; path = components.path</strong>
+<strong class="calibre1">&gt;&gt;&gt; if not path:</strong>
+<strong class="calibre1">&gt;&gt;&gt;     path = '/index.html'</strong>
+<strong class="calibre1">&gt;&gt;&gt; elif path.endswith('/'):</strong>
+<strong class="calibre1">&gt;&gt;&gt;     path += 'index.html'</strong>
+<strong class="calibre1">&gt;&gt;&gt; filename = components.netloc + path + components.query</strong>
+<strong class="calibre1">&gt;&gt;&gt; filename</strong>
+<strong class="calibre1">'example.python-scraping.com/index/index.html'</strong></code></pre>
+
+  <p class="zw">根据所抓取网站的不同，可能需要修改边界情况处理功能。比如，由于Web服务器有其期望的URL传输方式，一些站点会在每个URL后添加/。对于这些站点，你可能只需要去除每个URL尾部的斜杠即可。再次重申，你需要评估并更新网络爬虫的代码，以最佳适应想要抓取的网站。</p>
+
+  <h3 class="calibre13" id="nav_point_51">3.3.1　实现磁盘缓存</h3>
+
+  <p class="zw">上一节中，我们介绍了创建基于磁盘的缓存时需要考虑的文件系统限制，包括允许使用哪些字符、文件名长度限制，以及确保文件和目录的创建位置不同。把URL到文件名的这些映射逻辑与代码结合起来，就形成了磁盘缓存的主要部分。下面是<code class="calibre4">DiskCache</code>类的初始实现代码。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">import os
+import re
+from urllib.parse import urlsplit
+
+class DiskCache:
+    def __init__(self, cache_dir='cache', max_len=255):
+        self.cache_dir = cache_dir
+        self.max_len = max_len
+
+    def url_to_path(self, url):
+        """ Return file system path string for given URL"""
+        components = urlsplit(url)
+        # append index.html to empty paths
+        path = components.path
+        if not path:
+            path = '/index.html'
+        elif path.endswith('/'):
+            path += 'index.html'
+        filename = components.netloc + path + components.query
+        # replace invalid characters
+        filename = re.sub('[^/0-9a-zA-Z\-.,;_ ]', '_', filename)
+        # restrict maximum number of characters
+        filename = '/'.join(seg[:self.max_len] for seg in
+filename.split('/'))
+        return os.path.join(self.cache_dir, filename)</code></pre>
+
+  <p class="zw">在上面的代码中，构造方法传入了一个用于设定缓存位置的参数，然后在<code class="calibre4">url_to_path</code>方法中应用了前面讨论的文件名限制。现在，我们还缺少根据文件名存取数据的方法。</p>
+
+  <p class="zw">下面的代码实现了这两个缺失的方法。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">import json
+class DiskCache:
+    ...
+    def __getitem__(self, url):
+        """Load data from disk for given URL"""
+        path = self.url_to_path(url)
+        if os.path.exists(path):
+            return json.load(path)
+        else:
+            # URL has not yet been cached
+            raise KeyError(url + ' does not exist')
+
+    def __setitem__(self, url, result):
+        """Save data to disk for given url"""
+        path = self.url_to_path(url)
+        folder = os.path.dirname(path)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+        json.dump(result, path)</code></pre>
+
+  <p class="zw">在<code class="calibre4">__setitem()__</code>中，我们使用<code class="calibre4">url_to_path()</code>方法将URL映射为安全文件名，在必要情况下还需要创建父目录。这里使用的<code class="calibre4">json</code>模块会对Python进行序列化处理，然后保存到磁盘中。而在<code class="calibre4">__getitem__()</code>方法中，首先会将URL映射为安全文件名。如果文件存在，则使用<code class="calibre4">json</code>加载其内容，并恢复其原始数据类型；如果文件不存在（即缓存中还没有该URL的数据），则会抛出<code class="calibre4">KeyError</code>异常。</p>
+
+  <h3 class="calibre13" id="nav_point_52">3.3.2　缓存测试</h3>
+
+  <p class="zw">现在，我们通过向爬虫传递<code class="calibre4">cache</code>关键词参数，来检验<code class="calibre4">DiskCache</code>类。该类的完整源代码位于本书源码的chp3文件夹中，其名为<code class="calibre4">diskcache.py</code>，并且在任何Python解释器中均可以测试该缓存。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00025.jpeg" width="8%"/>　</p>
+
+    <p class="zw">IPython是编写和解释Python的一套不错的工具，尤其是使用<code class="calibre4">IPython magic commands</code>进行Python调试时。你可以使用pip或conda安装<code class="calibre4">IPython（pip install ipython）</code>。</p>
+  </blockquote>
+
+  <p class="zw">下面，我们使用IPython帮助我们对请求计时，以测试其性能。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: from chp3.diskcache import DiskCache</strong>
+
+<strong class="calibre1">In [2]: from chp3.advanced_link_crawler import link_crawler</strong>
+
+<strong class="calibre1">In [3]: %time link_crawler('http://example.python-scraping.com/',</strong>
+<strong class="calibre1">'/(index|view)', cache=DiskCache())</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/index/1</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/index/2</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/view/Afghanistan-1</strong>
+<strong class="calibre1">CPU times: user 300 ms, sys: 16 ms, total: 316 ms</strong>
+<strong class="calibre1">Wall time: 1min 44s</strong></code></pre>
+
+  <p class="zw">第一次执行该命令时，由于缓存为空，因此网页会被正常下载。但当我们第二次执行该脚本时，网页加载自缓存中，爬虫应该更快完成执行，其执行结果如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [4]: %time link_crawler('http://example.python-scraping.com/',</strong>
+<strong class="calibre1">'/(index|view)', cache=DiskCache())</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/index/1</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/index/2</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">Loaded from cache:http://example.python-scraping.com/view/Afghanistan-1</strong>
+<strong class="calibre1">CPU times: user 20 ms, sys: 0 ns, total: 20 ms</strong>
+<strong class="calibre1">Wall time: 1.1 s</strong></code></pre>
+
+  <p class="zw">和上面的预期一样，爬取操作很快就完成了。当缓存为空时，我计算机中的爬虫下载耗时超过1分钟；而在第二次全部使用缓存时，该耗时只有1.1秒（比第一次爬取快了大约94倍！）。</p>
+
+  <p class="zw">由于硬件和网络连接速度的差异，在不同计算机中的准确执行时间也会有所区别。不过毋庸置疑的是，磁盘缓存比通过HTTP下载速度更快。</p>
+
+  <h3 class="calibre13" id="nav_point_53">3.3.3　节省磁盘空间</h3>
+
+  <p class="zw">为了最小化缓存所需的磁盘空间，我们可以对下载得到的HTML文件进行压缩处理。处理的实现方法很简单，只需在保存到磁盘之前使用<code class="calibre4">zlib</code>压缩序列化字符串即可。使用当前实现有助于人类阅读这些文件。我可以阅读任意缓存页面，并以JSON格式查看字典。如果需要的话，我还可以复用这些文件，将它们移至不同的操作系统中，用于非Python代码。添加压缩将使这些文件不再打开即可阅读，而且当我们通过其他编码语言使用下载的文件时，可能会引入一些编码问题。为了能够启用和关闭压缩，我们将其添加到构造函数中，并与文件编码（默认值设为UTF-8）一起使用。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">class DiskCache:
+    def __init__(self, cache_dir='../data/cache', max_len=255,
+compress=True,
+                 encoding='utf-8'):
+        ...
+        self.compress = compress
+        self.encoding = encoding</code></pre>
+
+  <p class="zw">然后，需要更新<code class="calibre4">__getitem__</code>和<code class="calibre4">__setitem__</code>方法。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"># in __getitem__ method for DiskCache class
+mode = ('rb' if self.compress else 'r')
+with open(path, mode) as fp:
+    if self.compress:
+        data = zlib.decompress(fp.read()).decode(self.encoding)
+        return json.loads(data)
+    return json.load(fp)
+
+# in __setitem__ method for DiskCache class
+mode = ('wb' if self.compress else 'w')
+with open(path, mode) as fp:
+    if self.compress:
+        data = bytes(json.dumps(result), self.encoding)
+        fp.write(zlib.compress(data))
+else:
+json.dump(result, fp)</code></pre>
+
+  <p class="zw">压缩完所有网页之后，缓存大小从416KB下降到156KB，而在我的计算机上爬取缓存示例网站的时间是260毫秒。</p>
+
+  <p class="zw">根据你的操作系统和Python安装的不同，等待时间可能会略长于未压缩的缓存（我这里实际更短）。根据约束的优先级不同（速度与内存、调试的方便性等），需要对你的爬虫是否使用压缩做出明智而慎重的决策。</p>
+
+  <p class="zw">你可以在本书代码库中查看更新了的磁盘缓存代码，它位于本书源码的chp3文件夹中，其名为<code class="calibre4">diskcache.py</code>。</p>
+
+  <h3 class="calibre13" id="nav_point_54">3.3.4　清理过期数据</h3>
+
+  <p class="zw">当前版本的磁盘缓存使用键值对的形式在磁盘上保存缓存，未来无论何时请求都会返回结果。对于缓存网页而言，该功能可能不太理想，因为网页内容随时都有可能发生变化，存储在缓存中的数据存在过期风险。本节中，我们将为缓存数据添加过期时间，以便爬虫知道何时需要下载网页的最新版本。在缓存网页时支持存储时间戳的功能也很简单。</p>
+
+  <p class="zw">下面的代码为该功能的实现。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">from datetime import datetime, timedelta
+
+class DiskCache:
+    def __init__(..., expires=timedelta(days=30)):
+        ...
+        self.expires = expires
+
+## in __getitem___ for DiskCache class
+with open(path, mode) as fp:
+    if self.compress:
+        data = zlib.decompress(fp.read()).decode(self.encoding)
+        data = json.loads(data)
+    else:
+        data = json.load(fp)
+    exp_date = data.get('expires')
+    if exp_date and datetime.strptime(exp_date,
+                                      '%Y-%m-%dT%H:%M:%S') &lt;=
+datetime.utcnow():
+        print('Cache expired!', exp_date)
+        raise KeyError(url + ' has expired.')
+    return data
+## in __setitem___ for DiskCache class
+result['expires'] = (datetime.utcnow() +
+self.expires).isoformat(timespec='seconds')</code></pre>
+
+  <p class="zw">在构造方法中，我们使用<code class="calibre4">timedelta</code>对象将默认过期时间设置为30天。然后，在<code class="calibre4">__set__</code>方法中，把过期时间戳作为键保存到结果字典中；而在<code class="calibre4">__get__</code>方法中，对比当前UTC时间和缓存时间，检查是否过期。为了测试过期时间功能，我们可以将其缩短为5秒，如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">&gt;&gt;&gt; cache = DiskCache(expires=timedelta(seconds=5))</strong>
+<strong class="calibre1">&gt;&gt;&gt; url = 'http://example.python-scraping.com'</strong>
+<strong class="calibre1">&gt;&gt;&gt; result = {'html': '...'}</strong>
+<strong class="calibre1">&gt;&gt;&gt; cache[url] = result</strong>
+<strong class="calibre1">&gt;&gt;&gt; cache[url]</strong>
+<strong class="calibre1">{'html': '...'}</strong>
+<strong class="calibre1">&gt;&gt;&gt; import time; time.sleep(5)</strong>
+<strong class="calibre1">&gt;&gt;&gt; cache[url]</strong>
+<strong class="calibre1">Traceback (most recent call last):</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">KeyError: 'http://example.python-scraping.com has expired'</strong></code></pre>
+
+  <p class="zw">和预期一样，缓存结果最初是可用的，经过5秒的睡眠之后，再次调用同一URL，则会抛出<code class="calibre4">KeyError</code>异常，也就是说缓存下载失效了。</p>
+
+  <h3 class="calibre13" id="nav_point_55">3.3.5　磁盘缓存缺点</h3>
+
+  <p class="zw">基于磁盘的缓存系统比较容易实现，无须安装其他模块，并且在文件管理器中就能查看结果。但是，该方法存在一个缺点，即受制于本地文件系统的限制。本章早些时候，为了将URL映射为安全文件名，我们应用了多种限制，然而该系统又会引发另一个问题，那就是一些URL会被映射为相同的文件名。比如，在对如下几个URL进行字符替换之后就会得到相同的文件名。</p>
+
+  <ul class="calibre5">
+    <li class="calibre6"><code class="calibre4">http://example.com/?a+b</code></li>
+
+    <li class="calibre6"><code class="calibre4">http://example.com/?a*b</code></li>
+
+    <li class="calibre6"><code class="calibre4">http://example.com/?a=b</code></li>
+
+    <li class="calibre6"><code class="calibre4">http://example.com/?a!b</code></li>
+  </ul>
+
+  <p class="zw">这就意味着，如果其中一个URL生成了缓存，其他3个URL也会被认为已经生成缓存，因为它们映射到了同一个文件名。另外，如果一些长URL只在第255个字符之后存在区别，截断后的版本也会被映射为相同的文件名。这个问题非常重要，因为URL的最大长度并没有明确限制。尽管在实践中URL很少会超过2000个字符，并且早期版本的IE浏览器也不支持超过2083个字符的URL。</p>
+
+  <p class="zw">避免这些限制的一种解决方案是使用URL的哈希值作为文件名。尽管该方法可以带来一定改善，但是最终还是会面临许多文件系统具有的一个关键问题，那就是每个卷和每个目录下的文件数量是有限制的。如果缓存存储在FAT32文件系统中，每个目录的最大文件数是65535。该限制可以通过将缓存分割到不同目录来避免，但是文件系统可存储的文件总数也是有限制的。我使用的<code class="calibre4">ext4</code>分区目前支持略多于3100万个文件，而一个大型网站往往拥有超过1亿个网页。很遗憾，<code class="calibre4">DiskCache</code>方法想要通用的话存在太多限制。要想避免这些问题，我们需要把多个缓存网页合并到一个文件中，并使用B+树或类似数据结构进行索引。我们并不会自己进行实现，而是在下一节中使用已有的键值对存储。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_56">3.4　键值对存储缓存</h2>
+
+  <p class="zw">为了避免基于磁盘的缓存已知的局限，我们将在已有的键值对存储系统上构建缓存。在爬取时，我们可能需要缓存大量数据，但又不需要任何复杂的连接，因此我们将使用高效的键值对存储，它要比传统关系型数据库甚至大多数NoSQL数据库更加易于扩展。具体来说，我们将使用非常流行的键值对存储Redis作为我们的缓存。</p>
+
+  <h3 class="calibre13" id="nav_point_57">3.4.1　键值对存储是什么</h3>
+
+  <p class="zw">键值对存储类似于Python字典，存储中的每个元素都有一个键和一个值。在设计<code class="calibre4">DiskCache</code>时，键值对模型可以很好地解决该问题。Redis实际上表示REmote DIctionary Server（远程字典服务器）。Redis最初发布于2009年，其API支持许多不同语言（包括Python）的客户端。它区别于一些更简单的键值对存储（如memcache），因为它的值可以是几种不同的结构化数据类型。Redis可以很容易地通过集群进行扩展，并且已经在一些大公司（比如Twitter）中作为海量缓存存储使用，比如Twitter的一个B树拥有大约65TB的分配堆内存。</p>
+
+  <p class="zw">对于你的抓取和爬取需求来说，可能需要为每个文档提供更多的信息，或是需要基于文档中的数据进行搜索和选择。对于这些情况，我推荐使用基于文档的数据库，例如ElasticSearch或MongoDB。无论是键值对存储，还是基于文档的数据库，与使用模式的传统SQL数据库（例如PostgreSQL和MySQL）相比，都能以更加清晰简单的方式，对非关系型数据进行扩展和快速查询。</p>
+
+  <h3 class="calibre13" id="nav_point_58">3.4.2　安装Redis</h3>
+
+  <p class="zw">我们可以按照Redis官网说明，通过编译最新源码的方式安装Redis。如果你使用的是Windows，则需要使用MSOpenTech的项目安装Redis，或是简单地通过虚拟机（使用Vagrant）或Docker实例的方式进行安装。然后，需要使用如下命令单独安装Python客户端。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">pip install redis</strong></code></pre>
+
+  <p class="zw">如果想要测试安装是否正常，可以在本地启动Redis（或者在你的虚拟机或容器中），命令如下。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">$ redis-server</strong></code></pre>
+
+  <p class="zw">你将看到一些文本，包括版本号以及Redis标志等。在文本最后，你将看到类似如下的消息。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">1212:M 18 Feb 20:24:44.590 * The server is now ready to accept connections
+on port 6379</code></pre>
+
+  <p class="zw">一般情况下，你的Redis服务器将使用相同的端口，即默认端口（6379）。为了测试Python客户端并连接Redis，我们可以使用Python解释器（在下面的代码中，我使用了IPython），如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: import redis</strong>
+
+<strong class="calibre1">In [2]: r = redis.StrictRedis(host='localhost', port=6379, db=0)</strong>
+
+<strong class="calibre1">In [3]: r.set('test', 'answer')</strong>
+<strong class="calibre1">Out[3]: True</strong>
+
+<strong class="calibre1">In [4]: r.get('test')</strong>
+<strong class="calibre1">Out[4]: b'answer'</strong></code></pre>
+
+  <p class="zw">在前面的代码中，我们简单地连接了我们的Redis服务器，然后使用<code class="calibre4">set</code>命令设置了一个键为<code class="calibre4">'test'</code>、值为<code class="calibre4">'answer'</code>的记录。我们可以使用<code class="calibre4">get</code>命令很容易地取得该记录。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00026.jpeg" width="8%"/>　</p>
+
+    <p class="zw">如果想要查看更多关于如何设置Redis作为后台进程运行的选项，我建议使用官方的Redis快速入门，或是使用你喜欢的搜索引擎搜索针对特定操作系统或安装的具体说明。</p>
+  </blockquote>
+
+  <h3 class="calibre13" id="nav_point_59">3.4.3　Redis概述</h3>
+
+  <p class="zw">下面给出了如何将示例网站数据存入Redis，而后加载它的例子。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [5]: url = 'http://example.python-scraping.com/view/United-Kingdom-239'</strong>
+
+<strong class="calibre1">In [6]: html = '...'</strong>
+
+<strong class="calibre1">In [7]: results = {'html': html, 'code': 200}</strong>
+
+<strong class="calibre1">In [8]: r.set(url, results)</strong>
+<strong class="calibre1">Out[8]: True</strong>
+
+<strong class="calibre1">In [9]: r.get(url)</strong>
+<strong class="calibre1">Out[9]: b"{'html': '...', 'code': 200}"</strong></code></pre>
+
+  <p class="zw">从<code class="calibre4">get</code>输出中可以看到，我们从Redis存储中接收到的是<code class="calibre4">bytes</code>类型，即使我们插入的是字典或字符串。我们可以通过使用<code class="calibre4">json</code>模块，按照对于<code class="calibre4">DiskCache</code>类相同的方式管理这些序列化数据。</p>
+
+  <p class="zw">如果我们需要更新URL的内容，会发生什么呢？</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [10]: r.set(url, {'html': 'new html!', 'code': 200})</strong>
+<strong class="calibre1">Out[10]: True</strong>
+
+<strong class="calibre1">In [11]: r.get(url)</strong>
+<strong class="calibre1">Out[11]: b"{'html': 'new html!', 'code': 200}"</strong></code></pre>
+
+  <p class="zw">从上面的输出中可以看到，Redis的<code class="calibre4">set</code>命令只是简单地覆盖了之前的值，这对于类似网络爬虫这样的简单存储来说非常合适。对于我们的需求而言，我们只需要每个URL有一个内容集合即可，因此它能够很好地映射为键值对存储。</p>
+
+  <p class="zw">让我们来看一下存储里有什么，并且清除不需要的数据。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [12]: r.keys()</strong>
+<strong class="calibre1">Out[12]: [b'test',</strong>
+<strong class="calibre1">b'http://example.python-scraping.com/view/United-Kingdom-239']</strong>
+
+<strong class="calibre1">In [13]: r.delete('test')</strong>
+<strong class="calibre1">Out[13]: 1</strong>
+
+<strong class="calibre1">In [14]: r.keys()</strong>
+<strong class="calibre1">Out[14]: [b'http://example.python-scraping.com/view/United-Kingdom-239']</strong></code></pre>
+
+  <p class="zw"><code class="calibre4">keys</code>方法返回了所有可用键的列表，而<code class="calibre4">delete</code>方法可以让我们传递一个（或多个）键并从存储中删除它们。我们还可以删除所有的键，如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [15]: r.flushdb()</strong>
+<strong class="calibre1">Out[15]: True</strong>
+
+<strong class="calibre1">In [16]: r.keys()</strong>
+<strong class="calibre1">Out[16]: []</strong></code></pre>
+
+  <p class="zw">Redis还有很多命令和工具，请阅读文档以进一步了解。现在，我们已经具备了使用Redis作为后端，为我们的网络爬虫创建缓存所需了解的所有内容了。</p>
+
+  <blockquote class="calibre11">
+    <p class="zw"><img alt="栏目1.jpg" class="calibre12" src="../images/00029.jpeg" width="8%"/>　</p>
+
+    <p class="zw">Python的Redis客户端提供了良好的文档，以及多个在Python中使用Redis的用例（比如PubSub管道或作为大型连接池）。Redis的官方文档中有一个包含了教程、书籍、参考以及用例的长列表，因此如果你想要了解如何扩展、安装以及部署Redis的话，我推荐你从这里开始。如果你在云或服务器上使用Redis的话，不要忘记对你的Redis实例实施安全措施！</p>
+  </blockquote>
+
+  <h3 class="calibre13" id="nav_point_60">3.4.4　Redis缓存实现</h3>
+
+  <p class="zw">现在，我们已经准备好使用与之前<code class="calibre4">DiskCache</code>类相同的类接口构建Redis缓存了。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">import json
+from datetime import timedelta
+from redis import StrictRedis
+
+class RedisCache:
+    def __init__(self, client=None, expires=timedelta(days=30),
+encoding='utf-8'):
+        # if a client object is not passed then try
+        # connecting to redis at the default localhost port
+        self.client = StrictRedis(host='localhost', port=6379, db=0)
+            if client is None else client
+        self.expires = expires
+        self.encoding = encoding
+
+    def __getitem__(self, url):
+        """Load value from Redis for the given URL"""
+        record = self.client.get(url)
+        if record:
+            return json.loads(record.decode(self.encoding))
+        else:
+            raise KeyError(url + ' does not exist')
+
+    def __setitem__(self, url, result):
+        """Save value in Redis for the given URL"""
+        data = bytes(json.dumps(result), self.encoding)
+        self.client.setex(url, self.expires, data)</code></pre>
+
+  <p class="zw">这里的<code class="calibre4">__getitem__</code>和<code class="calibre4">__setitem__</code>方法与前一节中关于如何在Redis中获取及设置键的讨论很相似，不过在这里我们使用了<code class="calibre4">json</code>模块控制序列化，并使用了<code class="calibre4">setex</code>方法，能够使我们在设置键值时附带过期时间。<code class="calibre4">setex</code>既可以接受<code class="calibre4">datetime.timedelta</code>，也可以接受以秒为单位的数值。这是一个非常方便的Redis功能，可以在指定秒数后自动删除记录。这就意味着我们不再需要像<code class="calibre4">DiskCache</code>类那样手工检查记录是否在我们的过期规则内。让我们使用20秒的时间差在IPython中进行尝试，观察缓存过期。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: from chp3.rediscache import RedisCache</strong>
+
+<strong class="calibre1">In [2]: from datetime import timedelta</strong>
+
+<strong class="calibre1">In [3]: cache = RedisCache(expires=timedelta(seconds=20))</strong>
+
+<strong class="calibre1">In [4]: cache['test'] = {'html': '...', 'code': 200}</strong>
+
+<strong class="calibre1">In [5]: cache['test']</strong>
+<strong class="calibre1">Out[5]: {'code': 200, 'html': '...'}</strong>
+
+<strong class="calibre1">In [6]: import time; time.sleep(20)</strong>
+
+<strong class="calibre1">In [7]: cache['test']</strong>
+<strong class="calibre1">----------------------------------------------------------------------</strong>
+<strong class="calibre1">KeyError Traceback (most recent call last)</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">KeyError: 'test does not exist'</strong></code></pre>
+
+  <p class="zw">结果显示我们的缓存可以按照预期工作，可以在JSON、字典和Redis键值对存储间进行序列化和反序列化操作，并且能够对结果进行过期处理。</p>
+
+  <h3 class="calibre13" id="nav_point_61">3.4.5　压缩</h3>
+
+  <p class="zw">要想完全对比该缓存功能与原始的磁盘缓存，我们需要添加最后一个功能：<strong class="calibre1">压缩</strong>。压缩的实现方式类似于磁盘缓存，先对数据进行序列化，然后使用<code class="calibre4">zlib</code>进行压缩，如下所示。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">import zlib
+from bson.binary import Binary
+
+class RedisCache:
+    def __init__(..., compress=True):
+        ...
+        self.compress = compress
+
+    def __getitem__(self, url):
+        record = self.client.get(url)
+        if record:
+            if self.compress:
+                record = zlib.decompress(record)
+            return json.loads(record.decode(self.encoding))
+        else:
+            raise KeyError(url + ' does not exist')
+
+    def __setitem__(self, url, result):
+        data = bytes(json.dumps(result), self.encoding)
+        if self.compress:
+            data = zlib.compress(data)
+        self.client.setex(url, self.expires, data)</code></pre>
+
+  <h3 class="calibre13" id="nav_point_62">3.4.6　测试缓存</h3>
+
+  <p class="zw"><code class="calibre4">RedisCache</code>类的源码可以在本书源码文件中的chp3文件夹中找到，其名为<code class="calibre4">rediscache.py</code>。和<code class="calibre4">DiskCache</code>一样，该缓存也可以在任何Python解释器中使用链接爬虫来进行测试。在这里，我们使用IPython，以便利用<code class="calibre4">%time</code>命令。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: from chp3.advanced_link_crawler import link_crawler</strong>
+
+<strong class="calibre1">In [2]: from chp3.rediscache import RedisCache</strong>
+
+<strong class="calibre1">In [3]: %time link_crawler('http://example.python-scraping.com/',</strong>
+<strong class="calibre1">'/(index|view)', cache=RedisCache())</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/index/1</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/index/2</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">Downloading: http://example.python-scraping.com/view/Afghanistan-1</strong>
+<strong class="calibre1">CPU times: user 352 ms, sys: 32 ms, total: 384 ms</strong>
+<strong class="calibre1">Wall time: 1min 42s</strong>
+
+<strong class="calibre1">In [4]: %time link_crawler('http://example.Python-scraping.com/',</strong>
+<strong class="calibre1">'/(index|view)', cache=RedisCache())</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/index/1</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/index/2</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">Loaded from cache: http://example.python-scraping.com/view/Afghanistan-1</strong>
+<strong class="calibre1">CPU times: user 24 ms, sys: 8 ms, total: 32 ms</strong>
+<strong class="calibre1">Wall time: 282 ms</strong></code></pre>
+
+  <p class="zw">在第一次迭代中，这里花费的时间与<code class="calibre4">DiskCache</code>基本相同。不过，Redis的速度在缓存加载时才能真正体现出来，与未压缩的磁盘缓存系统相比，有着超过3倍的速度增长。缓存代码可读性的增加，以及Redis集群在高可用性大数据解决方案上的扩展能力，则是锦上添花。</p>
+
+  <h3 class="calibre13" id="nav_point_63">3.4.7　探索requests-cache</h3>
+
+  <p class="zw">有时，你可能希望缓存内部使用了<code class="calibre4">requests</code>库，或者你可能不希望管理缓存类来自己处理。如果是这样的情况，则可以使用<code class="calibre4">requests-cache</code>这个不错的库，它实现了一些不同的后端选项，用于为<code class="calibre4">requests</code>库创建缓存。当使用<code class="calibre4">requests-cache</code>时，通过<code class="calibre4">requests</code>库访问URL的所有<code class="calibre4">get</code>请求都会先检查缓存，只有没在缓存中找到的页面才会请求。</p>
+
+  <p class="zw"><code class="calibre4">requests-cache</code>支持多种后端，包括Redis、MongoDB（一种NoSQL数据库）、SQLite（一种轻量级的关系型数据库）以及内存（非永久保存，因此不推荐）。由于我们已经安装了Redis，因此我们将使用它作为我们的后端。我们先从安装这个库开始。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">pip install requests-cache</strong></code></pre>
+
+  <p class="zw">现在，我们可以在IPython中，使用一些简单的命令安装并测试我们的缓存了。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: import requests_cache</strong>
+
+<strong class="calibre1">In [2]: import requests</strong>
+
+<strong class="calibre1">In [3]: requests_cache.install_cache(backend='redis')</strong>
+
+<strong class="calibre1">In [4]: requests_cache.clear()</strong>
+
+<strong class="calibre1">In [5]: url = 'http://example.python-scraping.com/view/United-Kingdom-239'</strong>
+
+<strong class="calibre1">In [6]: resp = requests.get(url)</strong>
+
+<strong class="calibre1">In [7]: resp.from_cache</strong>
+<strong class="calibre1">Out[7]: False</strong>
+
+<strong class="calibre1">In [8]: resp = requests.get(url)</strong>
+
+<strong class="calibre1">In [9]: resp.from_cache</strong>
+<strong class="calibre1">Out[9]: True</strong></code></pre>
+
+  <p class="zw">如果我们使用它来代替我们自己的缓存类的话，只需使用<code class="calibre4">install_cache</code>命令实例化缓存，然后每个请求（只要我们使用了<code class="calibre4">requests</code>库）就都会保存在Redis后端中了。我们同样也可以使用一个简单的命令设置过期时间。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4">from datetime import timedelta
+requests_cache.install_cache(backend='redis',
+expire_after=timedelta(days=30))</code></pre>
+
+  <p class="zw">为了对比<code class="calibre4">requests-cache</code>与我们自己的实现的速度，我们需要构建新的下载器和链接爬虫。该下载器同样实现了之前推荐的<code class="calibre4">requests</code>钩子，以允许限速，其文档位于<code class="calibre4">requests-cache</code>的用户手册中，地址为<code class="calibre4">https://requests-cache.readthedocs.io/en/latest/user_guide.html</code>。</p>
+
+  <p class="zw">要想查看完整代码，可以访问新下载器的代码地址以及新的链接爬虫的地址，它们位于本书源码的<code class="calibre4">chp3</code>文件夹中，其名分别为<code class="calibre4">downloader_requests_ cache.py</code>和<code class="calibre4">requests_cache_link_crawler.py</code>。我们可以使用IPython测试它们，以对比性能。</p>
+  <pre class="dai_ma_wu_xing_hao"><code class="calibre4"><strong class="calibre1">In [1]: from chp3.requests_cache_link_crawler import link_crawler</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">In [3]: %time link_crawler('http://example.python-scraping.com/',</strong>
+<strong class="calibre1">'/(index|view)')</strong>
+<strong class="calibre1">Returning from cache: http://example.python-scraping.com/</strong>
+<strong class="calibre1">Returning from cache: http://example.python-scraping.com/index/1</strong>
+<strong class="calibre1">Returning from cache: http://example.python-scraping.com/index/2</strong>
+<strong class="calibre1">...</strong>
+<strong class="calibre1">Returning from cache:http://example.python-scraping.com/view/Afghanistan-1</strong>
+<strong class="calibre1">CPU times: user 116 ms, sys: 12 ms, total: 128 ms</strong>
+<strong class="calibre1">Wall time: 359 ms</strong></code></pre>
+
+  <p class="zw">可以看到，<code class="calibre4">requests-cache</code>解决方案的性能略低于我们自己的Redis方案，不过它的代码行数更少，速度依然很快（远超过磁盘缓存方案）。尤其是当你使用可能在内部使用<code class="calibre4">requests</code>管理的其他库时，<code class="calibre4">requests-cache</code>的实现是一个非常不错的工具。</p>
+
+  <h2 class="sigil_not_in_toc" id="nav_point_64">3.5　本章小结</h2>
+
+  <p class="zw">本章中，我们了解到缓存已下载的网页可以节省时间，并能最小化重新爬取网站所耗费的带宽。不过，缓存页面会占用磁盘空间，而我们可以使用压缩的方式缓解一些空间占用。此外，在类似Redis的现有存储系统的基础之上创建缓存，可以有效避免速度、内存以及文件系统的限制。</p>
+
+  <p class="zw">下一章中，我们将为爬虫添加更多的功能，从而实现并发下载网页，使爬虫运行得更快。</p>
+
+  <p class="zw"><br class="sgc-toc-level1" id="calibre_pb_1"/></p>
+</body>
+</html>
